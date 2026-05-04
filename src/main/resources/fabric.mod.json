@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "itemfinder",
+  "version": "1.0.0",
+  "name": "Item Finder",
+  "description": "Search for items in nearby containers",
+  "authors": ["lann"],
+  "contact": {
+    "homepage": "https://github.com/fadhlanputra/itemfinder",
+    "sources": "https://github.com/fadhlanputra/itemfinder",
+    "issues": "https://github.com/fadhlanputra/itemfinder/issues"
+  },
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.lann.itemfinder.ItemFinderMod"],
+    "client": ["com.lann.itemfinder.ItemFinderClient"],
+    "modmenu": ["com.lann.itemfinder.ModMenuIntegration"]
+  },
+  "mixins": [
+    "itemfinder.mixins.json",
+    {
+      "config": "itemfinder.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "fabric-api": "*",
+    "minecraft": "~1.21.5"
+  },
+  "suggests": {
+    "modmenu": "*",
+    "controllify": "*"
+  }
+}

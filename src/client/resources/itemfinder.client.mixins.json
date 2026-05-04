@@ -1,0 +1,13 @@
+{
+	"required": true,
+	"package": "com.lann.itemfinder.mixin.client",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"ExampleClientMixin",
+		"ContainerOpenMixin",
+		"ContainerCacheMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
