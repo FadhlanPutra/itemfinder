@@ -1,7 +1,7 @@
 {
     "key.itemfinder.open_search": "打开物品查找器",
     "category.itemfinder": "物品查找器",
-    "gui.itemfinder.title": "✦ 物品查找器 ✦",
+    "gui.itemfinder.title": "物品查找器",
     "gui.itemfinder.hint": "输入物品名称...",
     "gui.itemfinder.back": "← 返回",
     "gui.itemfinder.config": "⚙ 设置",

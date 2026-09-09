@@ -1,7 +1,7 @@
 {
     "key.itemfinder.open_search": "Open Item Finder",
     "category.itemfinder": "Item Finder",
-    "gui.itemfinder.title": "✦ Item Finder ✦",
+    "gui.itemfinder.title": "Item Finder",
     "gui.itemfinder.hint": "Type item name...",
     "gui.itemfinder.back": "← Back",
     "gui.itemfinder.config": "⚙ Config",

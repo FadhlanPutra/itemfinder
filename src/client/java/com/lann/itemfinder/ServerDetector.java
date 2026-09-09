@@ -14,23 +14,16 @@ public class ServerDetector {
     }
 
     public static void register() {
-        // Saat join server
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
-            // Deteksi address
             var serverData = client.getCurrentServer();
             currentAddress = (serverData != null) ? serverData.ip : "singleplayer";
 
-            // Coba kirim handshake packet ke server
-            // Kalau server punya mod, dia akan reply
             serverHasMod = false;
 
-            // Load cache untuk server ini
             CacheManager.onJoinServer(currentAddress);
 
-            // Cek apakah server support mod dengan cek channel
             client.execute(() -> {
                 try {
-                    // Kirim handshake, kalau server punya mod dia register channel ini
                     serverHasMod = ClientPlayNetworking.canSend(SearchPacket.TYPE);
                 } catch (Exception e) {
                     serverHasMod = false;
@@ -38,7 +31,6 @@ public class ServerDetector {
                 ItemFinderMod.LOGGER.info("[ItemFinder] Server has mod: " + serverHasMod);
             });
 
-            // Detect dimensi
             if (client.level != null) {
                 CacheManager.onChangeDimension(
                     client.level.dimension().location().toString()
@@ -46,7 +38,6 @@ public class ServerDetector {
             }
         });
 
-        // Saat disconnect
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             serverHasMod = false;
             CacheManager.onLeaveServer();

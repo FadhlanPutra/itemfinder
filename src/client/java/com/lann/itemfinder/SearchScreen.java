@@ -10,8 +10,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-// import com.lann.itemfinder.CacheManager;
-// import com.lann.itemfinder.ServerDetector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,30 +30,19 @@ public class SearchScreen extends Screen {
     private static final int ITEM_SIZE  = 18;
     private static final int GRID_COLS  = 9;
 
-    // ── Config panel row positions (fixed = label & button always aligned) ──
+    // ── Config panel ────────────────────
     private static final int CFG_START = 78;
     private static final int CFG_GAP   = 16;
-    // private static final int CFG_ROW_0 = CFG_START;
-    // private static final int CFG_ROW_1 = CFG_START + CFG_GAP;
-    // private static final int CFG_ROW_2 = CFG_START + CFG_GAP * 2;
-    // private static final int CFG_ROW_3 = CFG_START + CFG_GAP * 3;
-    // private static final int CFG_ROW_4 = CFG_START + CFG_GAP * 4;
-    // private static final int CFG_ROW_5 = CFG_START + CFG_GAP * 5;
-    // private static final int CFG_ROW_6 = CFG_START + CFG_GAP * 6;
-    // private static final int CFG_ROW_7 = CFG_START + CFG_GAP * 7;
-    // private static final int CFG_ROW_8 = CFG_START + CFG_GAP * 8;
-
-    // ── Config panel — otomatis berdasarkan jumlah row ────────────────────
-    // private static final int CFG_START   = 75;
-    // private static final int CFG_GAP     = 16;
     private static final int CFG_TITLE_PAD = 12;
     private static final int CFG_BOTTOM_PAD = 10;
-    private static final int CFG_HINT_PAD  = 15; // Buat atur teks config hint
-    private static final int CFG_ROW_COUNT = 10; // naikkan angka ini kalau tambah config baru
+    private static final int CFG_HINT_PAD  = 15;
+    private static final int CFG_ROW_COUNT = 10;
 
     private static int cfgRowY(int index) {
         return CFG_START + (CFG_GAP * index);
     }
+
+    enum EnterAction { NONE, PICK_FIRST, SCAN_ALL }
 
     public SearchScreen() {
         super(Component.translatable("gui.itemfinder.title"));
@@ -94,43 +81,43 @@ public class SearchScreen extends Screen {
 
         // ROW 0: Radius
         this.addRenderableWidget(Button.builder(Component.literal("-"),
-            btn -> { ConfigManager.get().radius = Math.max(10, ConfigManager.get().radius - 5); })
+            btn -> { ConfigManager.get().radius = Math.max(10, ConfigManager.get().radius - 5); ConfigManager.save(); })
             .bounds(btnX, cfgRowY(0), btnW, btnH).build());
         this.addRenderableWidget(Button.builder(Component.literal("+"),
-            btn -> { ConfigManager.get().radius = Math.min(200, ConfigManager.get().radius + 5); })
+            btn -> { ConfigManager.get().radius = Math.min(200, ConfigManager.get().radius + 5); ConfigManager.save(); })
             .bounds(btnX + btnW + 2, cfgRowY(0), btnW, btnH).build()
         );
 
         // ROW 1: Highlight duration
         this.addRenderableWidget(Button.builder(Component.literal("-"),
-            btn -> { ConfigManager.get().highlightDurationSeconds = Math.max(3, ConfigManager.get().highlightDurationSeconds - 1); })
+            btn -> { ConfigManager.get().highlightDurationSeconds = Math.max(3, ConfigManager.get().highlightDurationSeconds - 1); ConfigManager.save(); })
             .bounds(btnX, cfgRowY(1), btnW, btnH).build());
         this.addRenderableWidget(Button.builder(Component.literal("+"),
-            btn -> { ConfigManager.get().highlightDurationSeconds = Math.min(60, ConfigManager.get().highlightDurationSeconds + 1); })
+            btn -> { ConfigManager.get().highlightDurationSeconds = Math.min(60, ConfigManager.get().highlightDurationSeconds + 1); ConfigManager.save(); })
             .bounds(btnX + btnW + 2, cfgRowY(1), btnW, btnH).build()
         );
 
         // ROW 2: Highlight pulse
         this.addRenderableWidget(Button.builder(Component.translatable("gui.itemfinder.toggle"),
-            btn -> { ConfigManager.get().highlightPulse = !ConfigManager.get().highlightPulse; })
+            btn -> { ConfigManager.get().highlightPulse = !ConfigManager.get().highlightPulse; ConfigManager.save(); })
             .bounds(btnX, cfgRowY(2), 50, btnH).build()
         );
 
         // ROW 3: Sort mode
         this.addRenderableWidget(Button.builder(Component.translatable("gui.itemfinder.change"),
-            btn -> { ConfigManager.get().sortMode = ConfigManager.get().sortMode == 0 ? 1 : 0; })
+            btn -> { ConfigManager.get().sortMode = ConfigManager.get().sortMode == 0 ? 1 : 0; ConfigManager.save(); })
             .bounds(btnX, cfgRowY(3), 50, btnH).build()
         );
 
         // ROW 4: Send to chat
         this.addRenderableWidget(Button.builder(Component.translatable("gui.itemfinder.toggle"),
-            btn -> { ConfigManager.get().sendToChat = !ConfigManager.get().sendToChat; })
+            btn -> { ConfigManager.get().sendToChat = !ConfigManager.get().sendToChat; ConfigManager.save(); })
             .bounds(btnX, cfgRowY(4), 50, btnH).build()
         );
 
         // ROW 5: Particle trail
         this.addRenderableWidget(Button.builder(Component.translatable("gui.itemfinder.toggle"),
-            btn -> { ConfigManager.get().particleTrail = !ConfigManager.get().particleTrail; })
+            btn -> { ConfigManager.get().particleTrail = !ConfigManager.get().particleTrail; ConfigManager.save(); })
             .bounds(btnX, cfgRowY(5), 50, btnH).build()
         );
 
@@ -142,19 +129,20 @@ public class SearchScreen extends Screen {
                 int idx = 0;
                 for (int i = 0; i < opts.length; i++) if (opts[i].equals(cur)) { idx = i; break; }
                 ConfigManager.get().particleType = opts[(idx + 1) % opts.length];
+                ConfigManager.save();
             }
         ).bounds(btnX, cfgRowY(6), 50, btnH).build()
         );
 
         // ROW 7: Search language
         this.addRenderableWidget(Button.builder(Component.translatable("gui.itemfinder.toggle"),
-            btn -> { ConfigManager.get().searchByEnglish = !ConfigManager.get().searchByEnglish; })
+            btn -> { ConfigManager.get().searchByEnglish = !ConfigManager.get().searchByEnglish; ConfigManager.save(); })
             .bounds(btnX, cfgRowY(7), 50, btnH).build()
         );
 
         // ROW 8: Enter mode
         this.addRenderableWidget(Button.builder(Component.translatable("gui.itemfinder.change"),
-            btn -> { ConfigManager.get().enterMode = (ConfigManager.get().enterMode + 1) % 3; })
+            btn -> { ConfigManager.get().enterMode = (ConfigManager.get().enterMode + 1) % 3; ConfigManager.save(); })
             .bounds(btnX, cfgRowY(8), 50, btnH).build()
         );
     }
@@ -176,12 +164,22 @@ public class SearchScreen extends Screen {
             String itemId   = id.getPath().toLowerCase();
             String dispName = item.getDefaultInstance().getHoverName().getString().toLowerCase();
 
-            boolean match = ConfigManager.get().searchByEnglish
-                ? (itemId.contains(lastQuery) || dispName.contains(lastQuery))
-                : dispName.contains(lastQuery);
-
-            if (match) matchingItems.add(new ItemStack(item));
+            if (matchesQuery(itemId, dispName, lastQuery, ConfigManager.get().searchByEnglish)) {
+                matchingItems.add(new ItemStack(item));
+            }
         }
+    }
+
+    /**
+     * Menentukan apakah sebuah item cocok dengan query, sesuai config
+     * "Search Language" (searchByEnglish). Dipisah dari onQueryChanged()
+     * supaya bisa di-unit-test langsung tanpa registry item Minecraft.
+     */
+    static boolean matchesQuery(String itemId, String displayName, String query, boolean searchByEnglish) {
+        if (searchByEnglish) {
+            return itemId.contains(query) || displayName.contains(query);
+        }
+        return displayName.contains(query);
     }
 
     // ── Input handlers ──────────────────────────────────────────────────────
@@ -191,19 +189,36 @@ public class SearchScreen extends Screen {
 
         // Enter key
         if (keyCode == 257) {
-            int mode = ConfigManager.get().enterMode;
-            if (mode == 1 && !matchingItems.isEmpty() && !showingResults && !showingConfig) {
-                // Pilih item teratas dari grid
+            EnterAction action = decideEnterAction(
+                ConfigManager.get().enterMode,
+                !matchingItems.isEmpty(),
+                lastQuery.length(),
+                showingResults,
+                showingConfig
+            );
+            if (action == EnterAction.PICK_FIRST) {
                 doSearch(matchingItems.get(0));
                 return true;
-            } else if (mode == 2 && lastQuery.length() >= 2 && !showingResults && !showingConfig) {
-                // Scan all matches
+            } else if (action == EnterAction.SCAN_ALL) {
                 doSearchAll();
                 return true;
             }
         }
 
         return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    /**
+     * Menentukan aksi yang harus dijalankan saat Enter ditekan, sesuai
+     * config "Enter Key" (0=off, 1=pilih teratas, 2=scan all). Dipisah dari
+     * keyPressed() supaya bisa di-unit-test tanpa instance Screen.
+     */
+    static EnterAction decideEnterAction(int enterMode, boolean hasMatchingItems,
+                                          int queryLength, boolean showingResults, boolean showingConfig) {
+        if (showingResults || showingConfig) return EnterAction.NONE;
+        if (enterMode == 1 && hasMatchingItems) return EnterAction.PICK_FIRST;
+        if (enterMode == 2 && queryLength >= 2) return EnterAction.SCAN_ALL;
+        return EnterAction.NONE;
     }
 
     @Override
@@ -253,6 +268,7 @@ public class SearchScreen extends Screen {
         Minecraft client = Minecraft.getInstance();
         if (client.player == null || client.level == null) return;
 
+        ItemFinderMod.LOGGER.info("[ItemFinder] doSearch invoked for " + targetItem);
         statusMessage = "§e" + Component.translatable("gui.itemfinder.searching").getString();
         showingResults = true;
         searchResults.clear();
@@ -261,15 +277,15 @@ public class SearchScreen extends Screen {
         String targetId = BuiltInRegistries.ITEM.getKey(targetItem.getItem()).getPath();
         String itemName = targetItem.getHoverName().getString();
 
+        ItemFinderMod.LOGGER.info("[ItemFinder] doSearch: serverHasMod=" + ServerDetector.serverHasMod() + ", targetId=" + targetId);
         if (ServerDetector.serverHasMod()) {
-            // Server mode,  real-time scan via packet
             ClientNetworkHandler.onResultReceived = results -> handleResults(results, itemName, false);
             ClientNetworkHandler.sendSearchAllRequest(targetId);
         } else {
-            // Cache mode,  scan dari local cache
             BlockPos playerPos = client.player.blockPosition();
             List<CacheManager.CacheSearchResult> cacheResults =
                 CacheManager.searchExact(playerPos, ConfigManager.get().radius, targetId);
+            ItemFinderMod.LOGGER.info("[ItemFinder] doSearch cache mode: " + cacheResults.size() + " results");
             handleCacheResults(cacheResults, itemName);
         }
     }
@@ -279,6 +295,7 @@ public class SearchScreen extends Screen {
         Minecraft client = Minecraft.getInstance();
         if (client.player == null || client.level == null) return;
 
+        ItemFinderMod.LOGGER.info("[ItemFinder] doSearchAll invoked, lastQuery='" + lastQuery + "', serverHasMod=" + ServerDetector.serverHasMod());
         statusMessage = "§e" + Component.translatable("gui.itemfinder.searching").getString();
         showingResults = true;
         searchResults.clear();
@@ -287,20 +304,19 @@ public class SearchScreen extends Screen {
         String query = lastQuery;
 
         if (ServerDetector.serverHasMod()) {
-            // Server mode
             ClientNetworkHandler.onResultReceived = results -> handleResults(results, "\"" + query + "\"", false);
             ClientNetworkHandler.sendSearchAllRequest(query);
         } else {
-            // Cache mode
             BlockPos playerPos = client.player.blockPosition();
             List<CacheManager.CacheSearchResult> cacheResults =
                 CacheManager.searchContains(playerPos, ConfigManager.get().radius, query);
+            ItemFinderMod.LOGGER.info("[ItemFinder] doSearchAll cache mode: " + cacheResults.size() + " results");
             handleCacheResults(cacheResults, "\"" + query + "\"");
         }
     }
 
-    // Handler untuk hasil dari server
     private void handleResults(List<StorageScanner.SearchResult> results, String label, boolean fromCache) {
+        ItemFinderMod.LOGGER.info("[ItemFinder] handleResults invoked, " + results.size() + " results, label=" + label + ", fromCache=" + fromCache);
         Minecraft client = Minecraft.getInstance();
         searchResults = results;
 
@@ -329,11 +345,9 @@ public class SearchScreen extends Screen {
         ClientNetworkHandler.onResultReceived = null;
     }
 
-    // Handler untuk hasil dari cache
     private void handleCacheResults(List<CacheManager.CacheSearchResult> cacheResults, String label) {
         Minecraft client = Minecraft.getInstance();
 
-        // Convert ke SearchResult untuk highlight & particle
         List<StorageScanner.SearchResult> results = cacheResults.stream()
             .map(CacheManager.CacheSearchResult::toSearchResult)
             .collect(java.util.stream.Collectors.toList());
@@ -362,13 +376,12 @@ public class SearchScreen extends Screen {
             ParticleTrail.setTargets(results);
         }
 
-        // Tampilkan warning cache di chat
         if (ConfigManager.get().sendToChat && !results.isEmpty()) {
             client.gui.getChat().addMessage(
                 Component.literal("§e⚠ §7" + Component.translatable("gui.itemfinder.cache_warning").getString()));
         }
     }
-    
+
     private void handleBack() {
         if (showingConfig) {
             showingConfig = false;
@@ -386,21 +399,24 @@ public class SearchScreen extends Screen {
     @Override
     public void render(GuiGraphics g, int mx, int my, float delta) {
         updateButtonVisibility();
-        this.renderBackground(g, mx, my, delta);
-        g.drawCenteredString(this.font,
-            Component.translatable("gui.itemfinder.title").getString(),
-            this.width / 2, 12, 0xFFD700);
+
+        if (showingConfig) renderConfigBackground(g);
+
         super.render(g, mx, my, delta);
 
-        if (showingConfig)        renderConfig(g);
+        TextDrawer.drawCenteredString(g,
+            Component.translatable("gui.itemfinder.title").getString(),
+            this.width / 2, 12, 0xFFD700);
+
+        if (showingConfig)        renderConfigLabels(g);
         else if (showingResults)  renderResults(g);
         else                      renderItemGrid(g, mx, my);
 
         if (!statusMessage.isEmpty() && !showingConfig)
-            g.drawCenteredString(this.font, statusMessage, this.width / 2, this.height - 40, 0xFFFFFF);
+            TextDrawer.drawCenteredString(g, statusMessage, this.width / 2, this.height - 40, 0xFFFFFF);
 
         if (!showingResults && !showingConfig && hoveredSlot >= 0 && hoveredSlot < matchingItems.size())
-            g.renderTooltip(this.font, matchingItems.get(hoveredSlot), mx, my);
+            g.setTooltipForNextFrame(this.font, matchingItems.get(hoveredSlot), mx, my);
     }
 
     private void renderItemGrid(GuiGraphics g, int mx, int my) {
@@ -408,20 +424,20 @@ public class SearchScreen extends Screen {
             String msg = lastQuery.length() >= 2
                 ? Component.translatable("gui.itemfinder.no_match").getString()
                 : Component.translatable("gui.itemfinder.search_min").getString();
-            g.drawCenteredString(this.font, "§7" + msg, this.width / 2, 70, 0xAAAAAA);
+            TextDrawer.drawCenteredString(g, "§7" + msg, this.width / 2, 70, 0xAAAAAA);
             return;
         }
         int gx = this.width / 2 - (GRID_COLS * ITEM_SIZE) / 2, gy = 60;
         int rows = (int) Math.ceil((double) matchingItems.size() / GRID_COLS);
         int gw = GRID_COLS * ITEM_SIZE, gh = rows * ITEM_SIZE;
-        g.fill(gx - 2, gy - 2, gx + gw + 2, gy + gh + 2, 0x88000000);
+        g.fill(gx - 2, gy - 2, gx + gw + 2, gy + gh + 2, 0x55000000);
         for (int i = 0; i < matchingItems.size(); i++) {
             int col = i % GRID_COLS, row = i / GRID_COLS;
             int ix = gx + col * ITEM_SIZE, iy = gy + row * ITEM_SIZE;
-            if (i == hoveredSlot) g.fill(ix, iy, ix + ITEM_SIZE, iy + ITEM_SIZE, 0x88FFFFFF);
+            if (i == hoveredSlot) g.fill(ix, iy, ix + ITEM_SIZE, iy + ITEM_SIZE, 0x55FFFFFF);
             g.renderItem(matchingItems.get(i), ix + 1, iy + 1);
         }
-        g.drawCenteredString(this.font,
+        TextDrawer.drawCenteredString(g,
             "§7" + matchingItems.size() + Component.translatable("gui.itemfinder.click_to_scan").getString(),
             this.width / 2, gy + gh + 6, 0xAAAAAA);
     }
@@ -430,7 +446,7 @@ public class SearchScreen extends Screen {
         if (searchResults.isEmpty()) return;
         int sy = 60, px = this.width / 2 - 130, pw = 260;
         int visible = Math.min(MAX_VISIBLE_RESULTS, searchResults.size());
-        g.fill(px - 2, sy - 2, px + pw + 2, sy + visible * 13 + 4, 0x88000000);
+        g.fill(px - 2, sy - 2, px + pw + 2, sy + visible * 13 + 4, 0x55000000);
 
         Minecraft client = Minecraft.getInstance();
         BlockPos pp = client.player != null ? client.player.blockPosition() : BlockPos.ZERO;
@@ -439,10 +455,10 @@ public class SearchScreen extends Screen {
             if (idx >= searchResults.size()) break;
             var r = searchResults.get(idx);
             int dist = (int) Math.sqrt(pp.distSqr(r.pos));
-            g.drawString(this.font, r.format() + " §7(" + dist + "m)", px, sy + i * 13, 0xFFFFFF);
+            TextDrawer.drawString(g, r.format() + " §7(" + dist + "m)", px, sy + i * 13, 0xFFFFFF);
         }
         if (searchResults.size() > MAX_VISIBLE_RESULTS) {
-            g.drawCenteredString(this.font,
+            TextDrawer.drawCenteredString(g,
                 "§7scroll ↑↓ (" + (resultScrollOffset + 1) + "-" +
                 Math.min(resultScrollOffset + MAX_VISIBLE_RESULTS, searchResults.size()) +
                 " / " + searchResults.size() + ")",
@@ -450,63 +466,67 @@ public class SearchScreen extends Screen {
         }
     }
 
-    private void renderConfig(GuiGraphics g) {
+    private void renderConfigBackground(GuiGraphics g) {
+        int cx     = this.width / 2;
+        int labelX = cx - 120;
+
+        int contentBottom = cfgRowY(CFG_ROW_COUNT);
+        int hintY = contentBottom + CFG_HINT_PAD;
+        int panelTop = cfgRowY(0) - CFG_TITLE_PAD - 10;
+        int panelBottom = hintY + CFG_BOTTOM_PAD;
+        g.fill(labelX - 4, panelTop, cx + 135, panelBottom, 0xEE000000);
+    }
+
+    private void renderConfigLabels(GuiGraphics g) {
         ConfigManager.Config cfg = ConfigManager.get();
         int cx     = this.width / 2;
         int labelX = cx - 120;
         int off    = 3;
 
-        // Background otomatis berdasarkan CFG_ROW_COUNT
-        // int panelTop    = cfgRowY(0) - CFG_TITLE_PAD - 10;
-        // int panelBottom = cfgRowY(CFG_ROW_COUNT) + CFG_HINT_PAD;
         int contentBottom = cfgRowY(CFG_ROW_COUNT);
         int hintY = contentBottom + CFG_HINT_PAD;
         int panelTop = cfgRowY(0) - CFG_TITLE_PAD - 10;
-        int panelBottom = hintY + CFG_BOTTOM_PAD;
-        g.fill(labelX - 4, panelTop, cx + 135, panelBottom, 0xAA000000);
 
-        // Title otomatis di atas panel
-        g.drawCenteredString(this.font,
-            Component.translatable("gui.itemfinder.config_title").getString(),
-            cx, panelTop + 4, 0xFFD700);
+        TextDrawer.drawCenteredString(g,
+            Component.literal("§6§lConfiguration"),
+            cx, panelTop + 6, 0xFFFFFF);
 
-        // Labels
-        g.drawString(this.font,
-            Component.translatable("gui.itemfinder.config_radius").getString() + " §e" + cfg.radius + " block",
+        TextDrawer.drawString(g,
+            Component.literal("§f" + Component.translatable("gui.itemfinder.config_radius").getString() + ": §e" + cfg.radius + " §7blocks"),
             labelX, cfgRowY(0) + off, 0xFFFFFF);
 
-        g.drawString(this.font,
-            Component.translatable("gui.itemfinder.config_highlight_duration").getString() + " §e" + cfg.highlightDurationSeconds + "s",
+        TextDrawer.drawString(g,
+            Component.literal("§f" + Component.translatable("gui.itemfinder.config_highlight_duration").getString() + ": §e" + cfg.highlightDurationSeconds + "s"),
             labelX, cfgRowY(1) + off, 0xFFFFFF);
 
-        g.drawString(this.font,
-            Component.translatable("gui.itemfinder.config_highlight_pulse").getString() + " §e" + (cfg.highlightPulse ? "ON" : "OFF"),
+        TextDrawer.drawString(g,
+            Component.literal("§f" + Component.translatable("gui.itemfinder.config_highlight_pulse").getString() + ": §e" + (cfg.highlightPulse ? "ON" : "OFF")),
             labelX, cfgRowY(2) + off, 0xFFFFFF);
 
         String sortLabel = Component.translatable(
             cfg.sortMode == 0 ? "gui.itemfinder.sort_distance" : "gui.itemfinder.sort_count"
         ).getString();
-        g.drawString(this.font,
-            Component.translatable("gui.itemfinder.config_sort").getString() + " §e" + sortLabel,
+        TextDrawer.drawString(g,
+            Component.literal("§f" + Component.translatable("gui.itemfinder.config_sort").getString() + ": §e" + sortLabel),
             labelX, cfgRowY(3) + off, 0xFFFFFF);
 
-        g.drawString(this.font,
-            Component.translatable("gui.itemfinder.config_chat").getString() + " §e" + (cfg.sendToChat ? "ON" : "OFF"),
+        TextDrawer.drawString(g,
+            Component.literal("§f" + Component.translatable("gui.itemfinder.config_chat").getString() + ": §e" + (cfg.sendToChat ? "ON" : "OFF")),
             labelX, cfgRowY(4) + off, 0xFFFFFF);
 
-        g.drawString(this.font,
-            Component.translatable("gui.itemfinder.config_particle").getString() + " §e" + (cfg.particleTrail ? "ON" : "OFF"),
+        TextDrawer.drawString(g,
+            Component.literal("§f" + Component.translatable("gui.itemfinder.config_particle").getString() + ": §e" + (cfg.particleTrail ? "ON" : "OFF")),
             labelX, cfgRowY(5) + off, 0xFFFFFF);
 
-        g.drawString(this.font,
-            Component.translatable("gui.itemfinder.config_particle_type").getString() + " §e" + cfg.particleType,
+        TextDrawer.drawString(g,
+            Component.literal("§f" + Component.translatable("gui.itemfinder.config_particle_type").getString() + ": §e" + cfg.particleType),
             labelX, cfgRowY(6) + off, 0xFFFFFF);
 
         String langLabel = Component.translatable(
             cfg.searchByEnglish ? "gui.itemfinder.search_lang_english" : "gui.itemfinder.search_lang_game"
         ).getString();
-        g.drawString(this.font,
-            Component.translatable("gui.itemfinder.config_search_lang").getString() + " §e" + langLabel,
+        TextDrawer.drawString(g,
+            Component.literal("§f" + Component.translatable("gui.itemfinder.config_search_lang").getString() + ": §e" + langLabel),
             labelX, cfgRowY(7) + off, 0xFFFFFF);
 
         String enterLabel = Component.translatable(
@@ -516,22 +536,18 @@ public class SearchScreen extends Screen {
                 default -> "gui.itemfinder.enter_off";
             }
         ).getString();
-        g.drawString(this.font,
-            Component.translatable("gui.itemfinder.config_enter_mode").getString() + " §e" + enterLabel,
+        TextDrawer.drawString(g,
+            Component.literal("§f" + Component.translatable("gui.itemfinder.config_enter_mode").getString() + ": §e" + enterLabel),
             labelX, cfgRowY(8) + off, 0xFFFFFF);
 
-        // Hint otomatis di bawah row terakhir
-        g.drawCenteredString(this.font,
-            "§7" + Component.translatable("gui.itemfinder.config_save_hint").getString(),
-            // cx, panelBottom - CFG_HINT_PAD + 2, 0x888888);
-            cx, hintY, 0x888888);
+        TextDrawer.drawCenteredString(g,
+            Component.literal("§7" + Component.translatable("gui.itemfinder.config_save_hint").getString()),
+            cx, hintY, 0xAAAAAA);
     }
 
     private void updateButtonVisibility() {
         int i = 0;
         for (var widget : this.children()) {
-            // index 0 = searchBox, 1 = back, 2 = config, 3 = scan all
-            // index 4+ = config buttons
             if (i > 3 && widget instanceof Button btn) {
                 btn.visible = showingConfig;
             }

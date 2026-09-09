@@ -1,7 +1,7 @@
 {
     "key.itemfinder.open_search": "Abrir Buscador de Objetos",
     "category.itemfinder": "Buscador de Objetos",
-    "gui.itemfinder.title": "✦ Buscador de Objetos ✦",
+    "gui.itemfinder.title": "Buscador de Objetos",
     "gui.itemfinder.hint": "Escribe el nombre del objeto...",
     "gui.itemfinder.back": "← Volver",
     "gui.itemfinder.config": "⚙ Configuración",

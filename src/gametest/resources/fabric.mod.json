@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "itemfinder-test",
+  "version": "1.0.0",
+  "name": "Item Finder Tests",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-gametest": [
+      "com.lann.itemfinder.gametest.StorageScannerGameTest",
+      "com.lann.itemfinder.gametest.ConfigEffectGameTest"
+    ],
+    "fabric-client-gametest": [
+      "com.lann.itemfinder.gametest.ItemFinderClientGameTest"
+    ]
+
+  },
+  "depends": {
+    "itemfinder": "*"
+  }
+}

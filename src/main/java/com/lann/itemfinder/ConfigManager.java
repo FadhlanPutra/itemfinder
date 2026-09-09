@@ -21,12 +21,12 @@ public class ConfigManager {
         public float highlightColorG = 1.0f;
         public float highlightColorB = 0.0f;
         public boolean sendToChat = true;
-        public int sortMode = 0; // 0 = jarak, 1 = jumlah item
+        public int sortMode = 0; // 0 = sort by distance, 1 = sort by count
         public boolean particleTrail = true;
-        public boolean searchByEnglish = false; // true = pakai nama english (item ID), false = pakai nama bahasa game
-        public boolean searchMode = false; // false = exact item pick, true = langsung scan semua yang cocok
-        public String particleType = "END ROD"; // pilihan: FLAME, ENCHANT, END_ROD, SOUL_FIRE_FLAME, WITCH, DRAGON_BREATH
-        public int enterMode = 1; // 0 = off, 1 = pilih teratas, 2 = scan all matches
+        public boolean searchByEnglish = false; // true = use item English name for search, false = use item ID
+        public boolean searchMode = false; // false = exact item pick, true = search all matches
+        public String particleType = "END ROD"; // choose: FLAME, ENCHANT, END_ROD, SOUL_FIRE_FLAME, WITCH, DRAGON_BREATH
+        public int enterMode = 1; // 0 = off, 1 = pick on top, 2 = scan all matches
     }
 
     private static Config current = new Config();

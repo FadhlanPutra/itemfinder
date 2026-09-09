@@ -31,6 +31,20 @@ loom {
 
 }
 
+fabricApi {
+    configureTests {
+        createSourceSet = true
+        modId = "itemfinder-test"
+        enableGameTests = true
+        enableClientGameTests = true
+        eula = true
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -39,6 +53,7 @@ dependencies {
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+	testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"
 
 	modCompileOnly "com.terraformersmc:modmenu:13.0.0"	
 }

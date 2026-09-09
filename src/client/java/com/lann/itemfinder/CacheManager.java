@@ -42,7 +42,7 @@ public class CacheManager {
     public static class ServerCache {
         public String serverAddress;
         public Map<String, Map<String, CachedContainer>> dimensions = new HashMap<>();
-        // dimensions -> koordinat "x,y,z" -> container
+        // dimensions -> Coordinate "x,y,z" -> container
 
         public ServerCache(String serverAddress) {
             this.serverAddress = serverAddress;
@@ -107,10 +107,10 @@ public class CacheManager {
         CachedContainer cc = new CachedContainer(containerType);
         cc.items = new HashMap<>(items);
         currentCache.putContainer(currentDimension, pos, cc);
-        save(); // auto-save setiap update
+        save();
     }
 
-    // ── Remove container dari cache (kalau dihancurkan) ────────────────────
+    // ── Remove container from cache (when destroyed) ────────────────────
 
     public static void removeContainer(BlockPos pos) {
         if (currentCache == null) return;
@@ -121,7 +121,7 @@ public class CacheManager {
         }
     }
 
-    // ── Search dari cache ──────────────────────────────────────────────────
+    // ── Search from cache ──────────────────────────────────────────────────
 
     public static List<CacheSearchResult> searchExact(BlockPos playerPos, int radius, String targetItemId) {
         return search(playerPos, radius, (itemId, displayId) -> itemId.equals(targetItemId));
@@ -142,7 +142,6 @@ public class CacheManager {
             BlockPos pos = parsePos(entry.getKey());
             if (pos == null) continue;
 
-            // Cek dalam radius
             double dist = Math.sqrt(playerPos.distSqr(pos));
             if (dist > radius) continue;
 

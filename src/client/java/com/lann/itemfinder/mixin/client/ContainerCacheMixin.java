@@ -30,7 +30,6 @@ public class ContainerCacheMixin {
         if (screen instanceof AbstractContainerScreen<?> containerScreen) {
             BlockPos playerPos = client.player.blockPosition();
 
-            // Auto-clear highlight kalau container yang dibuka di-highlight
             for (BlockPos pos : HighlightRenderer.highlightedPositions.keySet()) {
                 if (Math.sqrt(playerPos.distSqr(pos)) <= 5.0) {
                     HighlightRenderer.highlightedPositions.remove(pos);
@@ -43,7 +42,6 @@ public class ContainerCacheMixin {
                 }
             }
 
-            // Schedule cache update setelah 1 tick (biar container menu sudah fully loaded)
             client.execute(() -> {
                 if (client.screen instanceof AbstractContainerScreen<?> cs) {
                     cacheOpenedContainer(client, cs);
@@ -59,12 +57,9 @@ public class ContainerCacheMixin {
         BlockPos playerPos = client.player.blockPosition();
         AbstractContainerMenu menu = screen.getMenu();
 
-        // Scan slot dari container (skip slot inventory player)
         Map<String, Integer> items = new HashMap<>();
         int containerSlots = menu.slots.size();
 
-        // Slot inventory player biasanya 27 slot terakhir (inventory) + 9 hotbar
-        // Kita ambil semua slot non-player-inventory
         int playerInvStart = containerSlots - 36; // 27 main + 9 hotbar
         if (playerInvStart < 0) playerInvStart = 0;
 
@@ -77,9 +72,6 @@ public class ContainerCacheMixin {
         }
 
         if (items.isEmpty()) return;
-
-        // Cari BlockPos container yang paling dekat dengan player (dalam radius 5 block)
-        // Cek block entity di sekitar player
         for (int x = -5; x <= 5; x++) {
             for (int y = -3; y <= 3; y++) {
                 for (int z = -5; z <= 5; z++) {
@@ -90,7 +82,7 @@ public class ContainerCacheMixin {
                         if (be instanceof Container) {
                             String typeName = be.getClass().getSimpleName();
                             CacheManager.cacheContainer(pos, typeName, items);
-                            return; // ambil yang pertama ditemukan
+                            return;
                         }
                     }
                 }

@@ -12,10 +12,11 @@ public class ItemFinderClient implements ClientModInitializer {
         HudOverlay.register();
         ParticleTrail.register();
         ClientNetworkHandler.register();
-        ServerDetector.register(); // tambahkan ini
+        ServerDetector.register();
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (KeyBindings.OPEN_SEARCH.consumeClick()) {
+                ItemFinderMod.LOGGER.info("[ItemFinder] OPEN_SEARCH key consumed, opening SearchScreen");
                 if (client.player != null) {
                     client.setScreen(new SearchScreen());
                 }

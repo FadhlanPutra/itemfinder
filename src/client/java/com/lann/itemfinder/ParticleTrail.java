@@ -16,7 +16,7 @@ public class ParticleTrail {
     private static final Map<BlockPos, Integer> targets = new ConcurrentHashMap<>();
     private static int tickCounter = 0;
 
-    // Daftar partikel yang bisa dipilih
+    // List of ParticleType names for the config dropdown
     public static final String[] PARTICLE_OPTIONS = {
         "FLAME", "ENCHANT", "END ROD", "SOUL FIRE FLAME",
         "WITCH", "DRAGON BREATH", "PORTAL", "HAPPY VILLAGER"

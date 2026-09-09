@@ -31,25 +31,39 @@ public class StorageScanner {
 
         public String format() {
             return "§e" + friendlyName(containerType) +
-                   " §fdi §b" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() +
+                   " §fat §b" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() +
                    " §f→ §a" + count + " item";
         }
 
-        private String friendlyName(String className) {
-            if (className.equals("EnderChestBlockEntity")) return "Ender Chest";
-            if (className.equals("MinecartChest")) return "Minecart Chest";
-            if (className.contains("ChestBoat")) return "Chest Boat";
-            if (className.contains("ShulkerBox")) return "Shulker Box";
-            if (className.contains("TrappedChest")) return "Trapped Chest";
-            if (className.contains("Chest")) return "Chest";
-            if (className.contains("Barrel")) return "Barrel";
-            if (className.contains("BlastFurnace")) return "Blast Furnace";
-            if (className.contains("Smoker")) return "Smoker";
-            if (className.contains("Furnace")) return "Furnace";
-            if (className.contains("Hopper")) return "Hopper";
-            if (className.contains("Dispenser")) return "Dispenser";
-            if (className.contains("Dropper")) return "Dropper";
-            return className.replace("BlockEntity", "");
+        private String friendlyName(String type) {
+            if (type.equals("EnderChestBlockEntity")) return "Ender Chest";
+            if (type.equals("MinecartChest")) return "Minecart Chest";
+            if (type.equals("ChestBoat")) return "Chest Boat";
+
+            String t = type.toLowerCase();
+            if (t.contains("shulker_box")) return "Shulker Box";
+            if (t.equals("trapped_chest")) return "Trapped Chest";
+            if (t.equals("chest")) return "Chest";
+            if (t.equals("barrel")) return "Barrel";
+            if (t.equals("blast_furnace")) return "Blast Furnace";
+            if (t.equals("smoker")) return "Smoker";
+            if (t.equals("furnace")) return "Furnace";
+            if (t.equals("hopper")) return "Hopper";
+            if (t.equals("dispenser")) return "Dispenser";
+            if (t.equals("dropper")) return "Dropper";
+
+            return capitalizeWords(t.replace('_', ' '));
+        }
+
+        private String capitalizeWords(String s) {
+            String[] parts = s.split(" ");
+            StringBuilder sb = new StringBuilder();
+            for (String part : parts) {
+                if (part.isEmpty()) continue;
+                if (sb.length() > 0) sb.append(' ');
+                sb.append(Character.toUpperCase(part.charAt(0))).append(part.substring(1));
+            }
+            return sb.toString();
         }
     }
 
@@ -58,7 +72,7 @@ public class StorageScanner {
                                                 int radius, String targetItemId) {
         List<SearchResult> results = new ArrayList<>();
 
-        // Scan block entities (chest, barrel, dll)
+        // Scan block entity (chest, barrel, shulker box, etc.)
         for (int x = -radius; x <= radius; x++) {
             for (int y = -radius; y <= radius; y++) {
                 for (int z = -radius; z <= radius; z++) {
@@ -84,7 +98,8 @@ public class StorageScanner {
                     if (blockEntity instanceof Container container) {
                         int found = countMatchingExact(container, targetItemId);
                         if (found > 0) {
-                            results.add(new SearchResult(pos, blockEntity.getClass().getSimpleName(), found));
+                            String blockId = BuiltInRegistries.BLOCK.getKey(blockState.getBlock()).getPath();
+                            results.add(new SearchResult(pos, blockId, found));
                         }
                     }
                 }
@@ -122,7 +137,6 @@ public class StorageScanner {
         return results;
     }
 
-    // Method untuk pencarian substring (fitur 3)
     public static List<SearchResult> scanContains(MinecraftServer server, ServerLevel serverLevel,
                                                    String playerName, BlockPos center,
                                                    int radius, String query) {
@@ -149,7 +163,10 @@ public class StorageScanner {
 
                     if (blockEntity instanceof Container container) {
                         int found = countMatchingContains(container, lowerQuery);
-                        if (found > 0) results.add(new SearchResult(pos, blockEntity.getClass().getSimpleName(), found));
+                        if (found > 0) {
+                            String blockId = BuiltInRegistries.BLOCK.getKey(blockState.getBlock()).getPath();
+                            results.add(new SearchResult(pos, blockId, found));
+                        }
                     }
                 }
             }
