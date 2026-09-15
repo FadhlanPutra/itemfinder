@@ -2,9 +2,10 @@ package com.lann.itemfinder;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.minecraft.client.renderer.RenderType;
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.core.BlockPos;
 import org.joml.Matrix4f;
 
@@ -35,7 +36,7 @@ public class HighlightRenderer {
     }
 
     public static void register() {
-        WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> {
+        LevelRenderEvents.AFTER_TRANSLUCENT_FEATURES.register(context -> {
             if (System.currentTimeMillis() > highlightUntil) {
                 highlightedPositions.clear();
                 return;
@@ -45,13 +46,12 @@ public class HighlightRenderer {
         });
     }
 
-    private static void renderHighlights(WorldRenderContext context) {
-        var camera = context.camera().getPosition();
-        PoseStack poseStack = context.matrixStack();
+    private static void renderHighlights(LevelRenderContext context) {
+        Minecraft client = Minecraft.getInstance();
+        if (client.gameRenderer == null || client.player == null) return;
+        var camera = client.gameRenderer.mainCamera().position();
+        PoseStack poseStack = context.poseStack();
         if (poseStack == null) return;
-
-        var bufferSource = context.consumers();
-        if (bufferSource == null) return;
 
         ConfigManager.Config cfg = ConfigManager.get();
 
@@ -63,19 +63,24 @@ public class HighlightRenderer {
         float g = cfg.highlightColorG * pulse;
         float b = cfg.highlightColorB * pulse;
 
-        VertexConsumer buffer = bufferSource.getBuffer(RenderType.lines());
-
         poseStack.pushPose();
         poseStack.translate(-camera.x, -camera.y, -camera.z);
 
-        for (BlockPos pos : highlightedPositions.keySet()) {
-            drawBlockOutline(poseStack, buffer, pos, r, g, b);
-        }
+        context.submitNodeCollector().submitCustomGeometry(
+            poseStack,
+            RenderTypes.lines(),
+            (pose, vertexConsumer) -> {
+                Matrix4f mat = pose.pose();
+                for (BlockPos pos : highlightedPositions.keySet()) {
+                    drawBlockOutline(mat, vertexConsumer, pos, r, g, b);
+                }
+            }
+        );
 
         poseStack.popPose();
     }
 
-    private static void drawBlockOutline(PoseStack poseStack, VertexConsumer buffer,
+    private static void drawBlockOutline(Matrix4f mat, VertexConsumer buffer,
                                           BlockPos pos, float r, float g, float b) {
         float x = pos.getX(), y = pos.getY(), z = pos.getZ();
         float x2 = x + 1f, y2 = y + 1f, z2 = z + 1f;
@@ -83,7 +88,6 @@ public class HighlightRenderer {
         x -= e; y -= e; z -= e;
         x2 += e; y2 += e; z2 += e;
 
-        Matrix4f mat = poseStack.last().pose();
         float a = 1.0f;
 
         line(buffer, mat, x,  y,  z,  x2, y,  z,  r, g, b, a);
@@ -107,7 +111,7 @@ public class HighlightRenderer {
         float nx = x2-x1, ny = y2-y1, nz = z2-z1;
         float len = (float)Math.sqrt(nx*nx + ny*ny + nz*nz);
         nx/=len; ny/=len; nz/=len;
-        buf.addVertex(mat, x1, y1, z1).setColor(r, g, b, a).setNormal(nx, ny, nz);
-        buf.addVertex(mat, x2, y2, z2).setColor(r, g, b, a).setNormal(nx, ny, nz);
+                    buf.addVertex(mat, x1, y1, z1).setColor(r, g, b, a).setNormal(nx, ny, nz).setLineWidth(1.0F);
+                    buf.addVertex(mat, x2, y2, z2).setColor(r, g, b, a).setNormal(nx, ny, nz).setLineWidth(1.0F);
     }
 }

@@ -65,6 +65,8 @@ Item Finder lets you search for any item across all your nearby storage containe
 | Dropper | ✅ |
 | Minecart with Chest | ✅ |
 | Chest Boat | ✅ |
+| Minecart with Hopper | ✅ |
+| Decorated Pot | ✅ |
 
 ### 🟡 Container Highlighting
 - Matching containers get a **glowing yellow outline** in the world
@@ -74,7 +76,7 @@ Item Finder lets you search for any item across all your nearby storage containe
 ### ✨ Particle Trail
 - Particles stream from your position toward each found container
 - The **nearest container** gets a stronger, brighter trail
-- **8 particle types:** Flame · Enchant · End Rod · Soul Fire · Witch · Dragon Breath · Portal · Happy Villager
+- **14 particle types:** Flame · Enchant · End Rod · Soul Fire · Witch · Dragon Breath · Portal · Happy Villager · Heart · Crit · Cloud · Totem · Spark · Campfire Signal Smoke
 
 ### 📋 HUD Overlay
 - Panel in the **top-right corner** shows container names and distances while highlights are active
@@ -158,8 +160,8 @@ Once Controllify is installed, map the following in its settings:
 ## 📥 Installation
 
 ### Requirements
-- Minecraft **1.21.5**
-- [Fabric Loader](https://fabricmc.net/use/) **0.18.4+**
+- Minecraft **26.2**
+- [Fabric Loader](https://fabricmc.net/use/) **0.19.5+**
 - [Fabric API](https://modrinth.com/mod/fabric-api)
 
 ### Optional but recommended
@@ -167,7 +169,7 @@ Once Controllify is installed, map the following in its settings:
 - [Controllify](https://modrinth.com/mod/controllify): controller support
 
 ### Steps
-1. Install [Fabric](https://fabricmc.net/use/) for Minecraft 1.21.5
+1. Install [Fabric](https://fabricmc.net/use/) for Minecraft 26.2
 2. Download **Fabric API** and place it in your `.minecraft/mods/` folder
 3. Download **Item Finder** and place it in your `.minecraft/mods/` folder
 4. Launch Minecraft with the Fabric profile
@@ -178,7 +180,7 @@ Once Controllify is installed, map the following in its settings:
 
 Fully translated into **15 languages**, follows your Minecraft language setting automatically.
 
-English · Indonesian · Malay · Chinese (Simplified) · German · Japanese · Portugese (Brazil) · Russian · Spanish · French · Italian · Korean · Dutch · Polish · Turkish
+English · Indonesian · Malay · Chinese (Simplified) · German · Japanese · Portuguese (Brazil) · Russian · Spanish · French · Italian · Korean · Dutch · Polish · Turkish
 
 Change at **Options → Language**.
 

@@ -33,7 +33,7 @@ public class ServerDetector {
 
             if (client.level != null) {
                 CacheManager.onChangeDimension(
-                    client.level.dimension().location().toString()
+                    client.level.dimension().identifier().toString()
                 );
             }
         });

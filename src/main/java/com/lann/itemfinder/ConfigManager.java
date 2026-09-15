@@ -25,7 +25,7 @@ public class ConfigManager {
         public boolean particleTrail = true;
         public boolean searchByEnglish = false; // true = use item English name for search, false = use item ID
         public boolean searchMode = false; // false = exact item pick, true = search all matches
-        public String particleType = "END ROD"; // choose: FLAME, ENCHANT, END_ROD, SOUL_FIRE_FLAME, WITCH, DRAGON_BREATH
+        public String particleType = "END ROD"; // choose: FLAME, ENCHANT, END ROD, SOUL FIRE FLAME, WITCH, DRAGON BREATH, PORTAL, HAPPY VILLAGER, HEART, CRIT, CLOUD, TOTEM, SPARK, CAMPFIRE_SIGNAL_SMOKE
         public int enterMode = 1; // 0 = off, 1 = pick on top, 2 = scan all matches
     }
 

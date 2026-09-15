@@ -6,11 +6,13 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.vehicle.AbstractChestBoat;
-import net.minecraft.world.entity.vehicle.MinecartChest;
+import net.minecraft.world.entity.vehicle.boat.AbstractChestBoat;
+import net.minecraft.world.entity.vehicle.minecart.MinecartChest;
+import net.minecraft.world.entity.vehicle.minecart.MinecartHopper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.EnderChestBlockEntity;
+import net.minecraft.world.level.block.entity.DecoratedPotBlockEntity;
 import net.minecraft.world.phys.AABB;
 
 import java.util.ArrayList;
@@ -39,6 +41,7 @@ public class StorageScanner {
             if (type.equals("EnderChestBlockEntity")) return "Ender Chest";
             if (type.equals("MinecartChest")) return "Minecart Chest";
             if (type.equals("ChestBoat")) return "Chest Boat";
+            if (type.equals("MinecartHopper")) return "Minecart with Hopper";
 
             String t = type.toLowerCase();
             if (t.contains("shulker_box")) return "Shulker Box";
@@ -95,6 +98,14 @@ public class StorageScanner {
                         continue;
                     }
 
+                    if (blockEntity instanceof DecoratedPotBlockEntity) {
+                        int found = countMatchingExact((Container) blockEntity, targetItemId);
+                        if (found > 0) {
+                            results.add(new SearchResult(pos, "decorated_pot", found));
+                        }
+                        continue;
+                    }
+
                     if (blockEntity instanceof Container container) {
                         int found = countMatchingExact(container, targetItemId);
                         if (found > 0) {
@@ -123,6 +134,9 @@ public class StorageScanner {
             } else if (entity instanceof AbstractChestBoat chestBoat) {
                 container = chestBoat;
                 typeName = "ChestBoat";
+            } else if (entity instanceof MinecartHopper hopper) {
+                container = hopper;
+                typeName = "MinecartHopper";
             }
 
             if (container != null && typeName != null) {
@@ -161,6 +175,12 @@ public class StorageScanner {
                         continue;
                     }
 
+                    if (blockEntity instanceof DecoratedPotBlockEntity) {
+                        int found = countMatchingExact((Container) blockEntity, lowerQuery);
+                        if (found > 0) results.add(new SearchResult(pos, "decorated_pot", found));
+                        continue;
+                    }
+
                     if (blockEntity instanceof Container container) {
                         int found = countMatchingContains(container, lowerQuery);
                         if (found > 0) {
@@ -182,6 +202,7 @@ public class StorageScanner {
             String typeName = null;
             if (entity instanceof MinecartChest m) { container = m; typeName = "MinecartChest"; }
             else if (entity instanceof AbstractChestBoat b) { container = b; typeName = "ChestBoat"; }
+            else if (entity instanceof MinecartHopper h) { container = h; typeName = "MinecartHopper"; }
             if (container != null) {
                 int found = countMatchingContains(container, lowerQuery);
                 if (found > 0) results.add(new SearchResult(entity.blockPosition(), typeName, found));

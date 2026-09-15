@@ -40,4 +40,5 @@ replay_*.log
 *.jfr
 
 .kilo
+MIGRATION.md
 logs/

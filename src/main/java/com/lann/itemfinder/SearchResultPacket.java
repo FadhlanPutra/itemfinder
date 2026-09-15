@@ -5,7 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +13,7 @@ import java.util.List;
 public class SearchResultPacket implements CustomPacketPayload {
 
     public static final Type<SearchResultPacket> TYPE = new Type<>(
-        ResourceLocation.parse("itemfinder:search_result")
+        Identifier.parse("itemfinder:search_result")
     );
 
     public static final StreamCodec<FriendlyByteBuf, SearchResultPacket> CODEC =
@@ -51,6 +51,6 @@ public class SearchResultPacket implements CustomPacketPayload {
     }
 
     public static void register() {
-        PayloadTypeRegistry.playS2C().register(TYPE, CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(TYPE, CODEC);
     }
 }

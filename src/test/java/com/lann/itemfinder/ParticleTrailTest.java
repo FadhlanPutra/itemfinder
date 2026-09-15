@@ -1,7 +1,9 @@
 package com.lann.itemfinder;
 
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.core.particles.PowerParticleOption;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -19,9 +21,9 @@ public class ParticleTrailTest {
 
     @Test
     void everyOptionMapsToDistinctParticle() {
-        Set<SimpleParticleType> seen = new HashSet<>();
+        Set<ParticleOptions> seen = new HashSet<>();
         for (String option : ParticleTrail.PARTICLE_OPTIONS) {
-            SimpleParticleType particle = ParticleTrail.getParticle(option);
+            ParticleOptions particle = ParticleTrail.getParticle(option);
             Assertions.assertNotNull(particle, "Option '" + option + "' produced null particle");
 
             boolean isNew = seen.add(particle);
@@ -41,7 +43,7 @@ public class ParticleTrailTest {
         Assertions.assertEquals(ParticleTypes.END_ROD, ParticleTrail.getParticle("END ROD"));
         Assertions.assertEquals(ParticleTypes.SOUL_FIRE_FLAME, ParticleTrail.getParticle("SOUL FIRE FLAME"));
         Assertions.assertEquals(ParticleTypes.WITCH, ParticleTrail.getParticle("WITCH"));
-        Assertions.assertEquals(ParticleTypes.DRAGON_BREATH, ParticleTrail.getParticle("DRAGON BREATH"));
+        Assertions.assertEquals(ParticleTypes.DRAGON_BREATH, ((PowerParticleOption) ParticleTrail.getParticle("DRAGON BREATH")).getType());
         Assertions.assertEquals(ParticleTypes.PORTAL, ParticleTrail.getParticle("PORTAL"));
         Assertions.assertEquals(ParticleTypes.HAPPY_VILLAGER, ParticleTrail.getParticle("HAPPY VILLAGER"));
     }

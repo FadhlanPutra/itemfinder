@@ -1,7 +1,9 @@
 package com.lann.itemfinder;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
@@ -184,7 +186,8 @@ public class SearchScreen extends Screen {
 
     // ── Input handlers ──────────────────────────────────────────────────────
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyEvent event) {
+        int keyCode = event.key();
         if (keyCode == 256) { handleBack(); return true; } // ESC
 
         // Enter key
@@ -205,7 +208,7 @@ public class SearchScreen extends Screen {
             }
         }
 
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(event);
     }
 
     /**
@@ -233,7 +236,9 @@ public class SearchScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(double mx, double my, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        double mx = event.x();
+        double my = event.y();
         if (!showingResults && !showingConfig && !matchingItems.isEmpty()) {
             int slot = getSlotAt(mx, my);
             if (slot >= 0 && slot < matchingItems.size()) {
@@ -241,7 +246,7 @@ public class SearchScreen extends Screen {
                 return true;
             }
         }
-        return super.mouseClicked(mx, my, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override
@@ -333,11 +338,11 @@ public class SearchScreen extends Screen {
                 + " §f" + results.size() + " §a"
                 + Component.translatable("gui.itemfinder.container").getString();
             if (ConfigManager.get().sendToChat) {
-                client.gui.getChat().addMessage(
+                client.player.sendSystemMessage(
                     Component.literal("§6=== Item Finder: §f" + label
                         + (fromCache ? " §7[cache]" : "") + " §6==="));
                 for (var r : results)
-                    client.gui.getChat().addMessage(Component.literal(r.format()));
+                    client.player.sendSystemMessage(Component.literal(r.format()));
             }
             HighlightRenderer.setHighlights(results);
             ParticleTrail.setTargets(results);
@@ -367,17 +372,17 @@ public class SearchScreen extends Screen {
                 + " §f" + results.size() + " §a"
                 + Component.translatable("gui.itemfinder.container").getString();
             if (ConfigManager.get().sendToChat) {
-                client.gui.getChat().addMessage(
+                client.player.sendSystemMessage(
                     Component.literal("§6=== Item Finder: §f" + label + " §7[cache] §6==="));
                 for (var r : cacheResults)
-                    client.gui.getChat().addMessage(Component.literal(r.format()));
+                    client.player.sendSystemMessage(Component.literal(r.format()));
             }
             HighlightRenderer.setHighlights(results);
             ParticleTrail.setTargets(results);
         }
 
         if (ConfigManager.get().sendToChat && !results.isEmpty()) {
-            client.gui.getChat().addMessage(
+            client.player.sendSystemMessage(
                 Component.literal("§e⚠ §7" + Component.translatable("gui.itemfinder.cache_warning").getString()));
         }
     }
@@ -397,12 +402,12 @@ public class SearchScreen extends Screen {
 
     // ── Render ──────────────────────────────────────────────────────────────
     @Override
-    public void render(GuiGraphics g, int mx, int my, float delta) {
+    public void extractRenderState(GuiGraphicsExtractor g, int mx, int my, float delta) {
         updateButtonVisibility();
 
         if (showingConfig) renderConfigBackground(g);
 
-        super.render(g, mx, my, delta);
+        super.extractRenderState(g, mx, my, delta);
 
         TextDrawer.drawCenteredString(g,
             Component.translatable("gui.itemfinder.title").getString(),
@@ -419,7 +424,7 @@ public class SearchScreen extends Screen {
             g.setTooltipForNextFrame(this.font, matchingItems.get(hoveredSlot), mx, my);
     }
 
-    private void renderItemGrid(GuiGraphics g, int mx, int my) {
+    private void renderItemGrid(GuiGraphicsExtractor g, int mx, int my) {
         if (matchingItems.isEmpty()) {
             String msg = lastQuery.length() >= 2
                 ? Component.translatable("gui.itemfinder.no_match").getString()
@@ -435,14 +440,14 @@ public class SearchScreen extends Screen {
             int col = i % GRID_COLS, row = i / GRID_COLS;
             int ix = gx + col * ITEM_SIZE, iy = gy + row * ITEM_SIZE;
             if (i == hoveredSlot) g.fill(ix, iy, ix + ITEM_SIZE, iy + ITEM_SIZE, 0x55FFFFFF);
-            g.renderItem(matchingItems.get(i), ix + 1, iy + 1);
+            g.item(matchingItems.get(i), ix + 1, iy + 1);
         }
         TextDrawer.drawCenteredString(g,
             "§7" + matchingItems.size() + Component.translatable("gui.itemfinder.click_to_scan").getString(),
             this.width / 2, gy + gh + 6, 0xAAAAAA);
     }
 
-    private void renderResults(GuiGraphics g) {
+    private void renderResults(GuiGraphicsExtractor g) {
         if (searchResults.isEmpty()) return;
         int sy = 60, px = this.width / 2 - 130, pw = 260;
         int visible = Math.min(MAX_VISIBLE_RESULTS, searchResults.size());
@@ -466,7 +471,7 @@ public class SearchScreen extends Screen {
         }
     }
 
-    private void renderConfigBackground(GuiGraphics g) {
+    private void renderConfigBackground(GuiGraphicsExtractor g) {
         int cx     = this.width / 2;
         int labelX = cx - 120;
 
@@ -477,7 +482,7 @@ public class SearchScreen extends Screen {
         g.fill(labelX - 4, panelTop, cx + 135, panelBottom, 0xEE000000);
     }
 
-    private void renderConfigLabels(GuiGraphics g) {
+    private void renderConfigLabels(GuiGraphicsExtractor g) {
         ConfigManager.Config cfg = ConfigManager.get();
         int cx     = this.width / 2;
         int labelX = cx - 120;

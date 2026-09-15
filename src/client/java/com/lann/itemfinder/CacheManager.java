@@ -3,7 +3,7 @@ package com.lann.itemfinder;
 import com.google.gson.*;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.io.*;
 import java.nio.file.*;

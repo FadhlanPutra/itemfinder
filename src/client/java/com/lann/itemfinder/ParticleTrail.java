@@ -3,9 +3,10 @@ package com.lann.itemfinder;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.core.particles.PowerParticleOption;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.Map;
@@ -19,18 +20,25 @@ public class ParticleTrail {
     // List of ParticleType names for the config dropdown
     public static final String[] PARTICLE_OPTIONS = {
         "FLAME", "ENCHANT", "END ROD", "SOUL FIRE FLAME",
-        "WITCH", "DRAGON BREATH", "PORTAL", "HAPPY VILLAGER"
+        "WITCH", "DRAGON BREATH", "PORTAL", "HAPPY VILLAGER",
+        "HEART", "CRIT", "CLOUD", "TOTEM", "SPARK", "CAMPFIRE_SIGNAL_SMOKE"
     };
 
-    public static SimpleParticleType getParticle(String name) {
+    public static ParticleOptions getParticle(String name) {
         return switch (name) {
             case "ENCHANT" -> ParticleTypes.ENCHANT;
             case "END ROD" -> ParticleTypes.END_ROD;
             case "SOUL FIRE FLAME" -> ParticleTypes.SOUL_FIRE_FLAME;
             case "WITCH" -> ParticleTypes.WITCH;
-            case "DRAGON BREATH" -> ParticleTypes.DRAGON_BREATH;
+            case "DRAGON BREATH" -> PowerParticleOption.create(ParticleTypes.DRAGON_BREATH, 1.0f);
             case "PORTAL" -> ParticleTypes.PORTAL;
             case "HAPPY VILLAGER" -> ParticleTypes.HAPPY_VILLAGER;
+            case "HEART" -> ParticleTypes.HEART;
+            case "CRIT" -> ParticleTypes.CRIT;
+            case "CLOUD" -> ParticleTypes.CLOUD;
+            case "TOTEM" -> ParticleTypes.TOTEM_OF_UNDYING;
+            case "SPARK" -> ParticleTypes.ELECTRIC_SPARK;
+            case "CAMPFIRE_SIGNAL_SMOKE" -> ParticleTypes.CAMPFIRE_SIGNAL_SMOKE;
             default -> ParticleTypes.FLAME;
         };
     }
@@ -75,7 +83,7 @@ public class ParticleTrail {
                 if (dist < minDist) minDist = dist;
             }
 
-            SimpleParticleType chosenParticle = getParticle(ConfigManager.get().particleType);
+            ParticleOptions chosenParticle = getParticle(ConfigManager.get().particleType);
 
             for (Map.Entry<BlockPos, Integer> entry : targets.entrySet()) {
                 BlockPos pos = entry.getKey();

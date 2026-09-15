@@ -1,6 +1,6 @@
 package com.lann.itemfinder;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -86,12 +86,12 @@ public class ModConfigScreen extends Screen {
         int doneY = rowY(ROW_COUNT) + HINT_PAD + 8;
         this.addRenderableWidget(Button.builder(
             Component.translatable("gui.done"),
-            b -> { ConfigManager.save(); this.minecraft.setScreen(parent); }
+            b -> { ConfigManager.save(); this.minecraft.gui.setScreen(parent); }
         ).bounds(cx - 50, doneY, 100, 20).build());
     }
 
     @Override
-    public void render(GuiGraphics g, int mx, int my, float delta) {
+    public void extractRenderState(GuiGraphicsExtractor g, int mx, int my, float delta) {
         g.fill(0, 0, this.width, this.height, 0xC0101018);
 
         ConfigManager.Config cfg = ConfigManager.get();
@@ -129,12 +129,12 @@ public class ModConfigScreen extends Screen {
             "§7Changes save automatically • Press ESC to close",
             cx, panelBottom + 4, 0xAAAAAA);
 
-        super.render(g, mx, my, delta);
+        super.extractRenderState(g, mx, my, delta);
     }
 
     @Override
     public void onClose() {
         ConfigManager.save();
-        this.minecraft.setScreen(parent);
+        this.minecraft.gui.setScreen(parent);
     }
 }
