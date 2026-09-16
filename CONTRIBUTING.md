@@ -25,7 +25,7 @@ This document is for developers who want to fork, contribute, or build on top of
 
 ## 🧭 Project Overview
 
-Item Finder is a Fabric mod for Minecraft 1.21.5 that allows players to search for items across nearby storage containers. It supports both singleplayer and multiplayer (with or without server-side installation).
+Item Finder is a Fabric mod for Minecraft 26.2 that allows players to search for items across nearby storage containers. It supports both singleplayer and multiplayer (with or without server-side installation).
 
 **Key design decisions:**
 - Client-side GUI with server-side scan logic (via Fabric Networking packets)
@@ -39,10 +39,10 @@ Item Finder is a Fabric mod for Minecraft 1.21.5 that allows players to search f
 
 | Tool | Version |
 |---|---|
-| Minecraft | 1.21.5 |
+| Minecraft | 26.2 |
 | Java | 21 |
-| Fabric Loader | 0.18.4+ |
-| Fabric API | 0.128.2+1.21.5 |
+| Fabric Loader | 0.19.5+ |
+| Fabric API | 0.159.0+26.2 |
 | Gradle | 9.x (via wrapper) |
 | Mappings | Mojang Official |
 | Optional | ModMenu 13.0.0 |
@@ -77,7 +77,7 @@ Output `.jar` will be in `build/libs/`. Use the one **without** `-sources` or `-
 
 ### Optional: ModMenu support
 
-To enable ModMenu integration during development, download [ModMenu](https://modrinth.com/mod/modmenu) for 1.21.5 and place it in `run/mods/`.
+To enable ModMenu integration during development, download [ModMenu](https://modrinth.com/mod/modmenu) for 26.2 and place it in `run/mods/`.
 
 ---
 
@@ -96,7 +96,7 @@ src/
 │   └── resources/
 │       ├── fabric.mod.json             # Mod metadata, entrypoints, dependencies
 │       ├── itemfinder.mixins.json      # Server-side mixin config
-│       └── assets/itemfinder/lang/    # Translation files (28 languages)
+│   └── assets/itemfinder/lang/    # Translation files (15 languages)
 │
 └── client/
     ├── java/com/lann/itemfinder/
@@ -404,7 +404,6 @@ Brief description.
 | `ContainerCacheMixin` uses positional heuristic to find opened container | `ContainerCacheMixin.java` | Works in most cases but may cache wrong container in edge cases with many adjacent containers |
 | `updateButtonVisibility()` relies on widget list order | `SearchScreen.java` | Fragile — if widget order changes, wrong buttons may be hidden/shown |
 | Lang files for non-English languages not fully translated | `lang/*.json` | Most files are copies of `en_us.json` — community translations welcome |
-| No unit tests | — | All testing is manual in-game |
 | Cache has no expiry or size limit | `CacheManager.java` | Could grow large on servers with many containers over time |
 
 ---
