@@ -3,18 +3,22 @@ package com.lann.itemfinder;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
+import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.Container;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.core.registries.BuiltInRegistries;
+
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class ItemFinderClient implements ClientModInitializer {
+    private static BlockPos lastUsedPos = null;
     @Override
     public void onInitializeClient() {
         ItemFinderMod.LOGGER.info("ItemFinder client loaded!");
@@ -25,6 +29,13 @@ public class ItemFinderClient implements ClientModInitializer {
         ClientNetworkHandler.register();
         ServerDetector.register();
 
+        UseBlockCallback.EVENT.register((player, level, hand, hit) -> {
+            if (level.isClientSide()) {
+                lastUsedPos = hit.getBlockPos();
+            }
+            return InteractionResult.PASS;
+        });
+
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (KeyBindings.OPEN_SEARCH.consumeClick()) {
                 ItemFinderMod.LOGGER.info("[ItemFinder] OPEN_SEARCH key consumed, opening SearchScreen");
@@ -34,7 +45,10 @@ public class ItemFinderClient implements ClientModInitializer {
             }
         });
 
+
         ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
+            ItemFinderMod.LOGGER.info("[ItemFinder] AFTER_INIT: screen=" + screen.getClass().getSimpleName());
+
             if (!(screen instanceof AbstractContainerScreen<?> containerScreen)) return;
             if (client.player == null) return;
 
@@ -59,13 +73,20 @@ public class ItemFinderClient implements ClientModInitializer {
                 }
             }
 
-            cacheOpenedContainer(client, containerScreen);
+            // cacheOpenedContainer(client, containerScreen);
+            ScreenEvents.remove(screen).register(s -> cacheOpenedContainer(client, containerScreen));
         });
     }
 
     private void cacheOpenedContainer(Minecraft client, AbstractContainerScreen<?> screen) {
-        if (client.player == null || client.level == null) return;
-        if (!CacheManager.isAvailable()) return;
+        if (client.player == null || client.level == null) {
+            ItemFinderMod.LOGGER.info("[ItemFinder] cacheOpenedContainer: player/level null");
+            return;
+        }
+        if (!CacheManager.isAvailable()) {
+            ItemFinderMod.LOGGER.info("[ItemFinder] cacheOpenedContainer: cache not available");
+            return;
+        }
 
         BlockPos playerPos = client.player.blockPosition();
         AbstractContainerMenu menu = screen.getMenu();
@@ -76,6 +97,9 @@ public class ItemFinderClient implements ClientModInitializer {
         int playerInvStart = containerSlots - 36; // 27 main + 9 hotbar
         if (playerInvStart < 0) playerInvStart = 0;
 
+        ItemFinderMod.LOGGER.info("[ItemFinder] cacheOpenedContainer: containerSlots=" + containerSlots
+            + ", playerInvStart=" + playerInvStart);
+
         for (int i = 0; i < playerInvStart; i++) {
             ItemStack stack = menu.slots.get(i).getItem();
             if (!stack.isEmpty()) {
@@ -84,22 +108,23 @@ public class ItemFinderClient implements ClientModInitializer {
             }
         }
 
-        if (items.isEmpty()) return;
-        for (int x = -5; x <= 5; x++) {
-            for (int y = -3; y <= 3; y++) {
-                for (int z = -5; z <= 5; z++) {
-                    BlockPos pos = playerPos.offset(x, y, z);
-                    var blockState = client.level.getBlockState(pos);
-                    if (blockState.hasBlockEntity()) {
-                        var be = client.level.getBlockEntity(pos);
-                        if (be instanceof Container) {
-                            String typeName = be.getClass().getSimpleName();
-                            CacheManager.cacheContainer(pos, typeName, items);
-                            return;
-                        }
-                    }
-                }
-            }
+        if (items.isEmpty()) {
+            ItemFinderMod.LOGGER.info("[ItemFinder] cacheOpenedContainer: no items in container");
+            return;
+        }
+        ItemFinderMod.LOGGER.info("[ItemFinder] cacheOpenedContainer: items=" + items);
+
+        if (lastUsedPos == null) {
+            ItemFinderMod.LOGGER.info("[ItemFinder] cacheOpenedContainer: lastUsedPos null");
+            return;
+        }
+        var be = client.level.getBlockEntity(lastUsedPos);
+        if (be instanceof Container) {
+            String typeName = be.getClass().getSimpleName();
+            ItemFinderMod.LOGGER.info("[ItemFinder] cacheOpenedContainer: cached at " + lastUsedPos + " type=" + typeName);
+            CacheManager.cacheContainer(lastUsedPos, typeName, items);
+        } else {
+            ItemFinderMod.LOGGER.info("[ItemFinder] cacheOpenedContainer: no container at lastUsedPos");
         }
     }
 }

@@ -25,7 +25,7 @@ This document is for developers who want to fork, contribute, or build on top of
 
 ## 🧭 Project Overview
 
-Item Finder is a Fabric mod for Minecraft 26.2 that allows players to search for items across nearby storage containers. It supports both singleplayer and multiplayer (with or without server-side installation).
+Item Finder is a Fabric mod for Minecraft 26.3 that allows players to search for items across nearby storage containers. It supports both singleplayer and multiplayer (with or without server-side installation).
 
 **Key design decisions:**
 - Client-side GUI with server-side scan logic (via Fabric Networking packets)
@@ -39,10 +39,10 @@ Item Finder is a Fabric mod for Minecraft 26.2 that allows players to search for
 
 | Tool | Version |
 |---|---|
-| Minecraft | 26.2 |
-| Java | 21 |
+| Minecraft | 26.3 |
+| Java | 25 |
 | Fabric Loader | 0.19.5+ |
-| Fabric API | 0.159.0+26.2 |
+| Fabric API | 0.160.6+26.3 |
 | Gradle | 9.x (via wrapper) |
 | Mappings | Mojang Official |
 | Optional | ModMenu 13.0.0 |
@@ -52,7 +52,7 @@ Item Finder is a Fabric mod for Minecraft 26.2 that allows players to search for
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Java 21 (JDK, not JRE) — recommended: [Adoptium Temurin 21](https://adoptium.net)
+- Java 25 (JDK, not JRE)
 - Git
 - Any IDE — IntelliJ IDEA recommended, VSCode with Extension Pack for Java also works
 
@@ -77,7 +77,7 @@ Output `.jar` will be in `build/libs/`. Use the one **without** `-sources` or `-
 
 ### Optional: ModMenu support
 
-To enable ModMenu integration during development, download [ModMenu](https://modrinth.com/mod/modmenu) for 26.2 and place it in `run/mods/`.
+To enable ModMenu integration during development, download [ModMenu](https://modrinth.com/mod/modmenu) for 26.3 and place it in `run/mods/`.
 
 ---
 

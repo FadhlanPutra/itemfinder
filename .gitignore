@@ -41,4 +41,7 @@ replay_*.log
 
 .kilo
 MIGRATION.md
+SERVER_TEST.md
+fabric-installer-1.1.2.jar
 logs/
+test_server/

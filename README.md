@@ -160,7 +160,7 @@ Once Controllify is installed, map the following in its settings:
 ## 📥 Installation
 
 ### Requirements
-- Minecraft **26.2**
+- Minecraft **26.3**
 - [Fabric Loader](https://fabricmc.net/use/) **0.19.5+**
 - [Fabric API](https://modrinth.com/mod/fabric-api)
 
@@ -169,7 +169,7 @@ Once Controllify is installed, map the following in its settings:
 - [Controllify](https://modrinth.com/mod/controllify): controller support
 
 ### Steps
-1. Install [Fabric](https://fabricmc.net/use/) for Minecraft 26.2
+1. Install [Fabric](https://fabricmc.net/use/) for Minecraft 26.3
 2. Download **Fabric API** and place it in your `.minecraft/mods/` folder
 3. Download **Item Finder** and place it in your `.minecraft/mods/` folder
 4. Launch Minecraft with the Fabric profile

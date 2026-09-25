@@ -7,7 +7,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import io.netty.buffer.Unpooled;
 
@@ -34,9 +36,15 @@ public class PacketCodecTest {
 
     @Test
     void searchResultPacket_roundTrip_preservesAllFields() {
+        Map<String, Integer> items1 = new HashMap<>();
+        items1.put("diamond", 5);
+        items1.put("emerald", 3);
+        Map<String, Integer> items2 = new HashMap<>();
+        items2.put("iron_ingot", 7);
+
         List<StorageScanner.SearchResult> original = List.of(
-            new StorageScanner.SearchResult(new BlockPos(10, 64, -5), "ChestBlockEntity", 12),
-            new StorageScanner.SearchResult(new BlockPos(-3, 70, 100), "BarrelBlockEntity", 3)
+            new StorageScanner.SearchResult(new BlockPos(10, 64, -5), "ChestBlockEntity", 12, items1),
+            new StorageScanner.SearchResult(new BlockPos(-3, 70, 100), "BarrelBlockEntity", 3, items2)
         );
         SearchResultPacket originalPacket = new SearchResultPacket(original);
 
@@ -54,6 +62,7 @@ public class PacketCodecTest {
             Assertions.assertEquals(exp.pos, act.pos, "BlockPos at result index " + i + " changed.");
             Assertions.assertEquals(exp.containerType, act.containerType, "containerType at result index " + i + " changed.");
             Assertions.assertEquals(exp.count, act.count, "count at result index " + i + " changed.");
+            Assertions.assertEquals(exp.items, act.items, "items map at result index " + i + " changed.");
         }
     }
 

@@ -147,6 +147,37 @@ public class CacheManagerTest {
         Assertions.assertFalse(CacheManager.isAvailable(), "After leaving server, cache no longer available");
     }
 
+    @Test
+    void cacheContainer_fromSearchResult_itemsPreserved() {
+        CacheManager.onJoinServer(SERVER_A);
+        BlockPos pos = new BlockPos(5, 64, 5);
+
+        Map<String, Integer> items = Map.of("diamond", 5, "emerald", 3);
+        CacheManager.cacheContainer(pos, "ChestBlockEntity", items);
+
+        List<CacheManager.CacheSearchResult> results =
+            CacheManager.searchExact(new BlockPos(0, 64, 0), 50, "diamond");
+
+        Assertions.assertEquals(1, results.size(), "Should find 1 container");
+        Assertions.assertEquals(5, results.get(0).count, "Only diamond should match in exact search");
+    }
+
+    @Test
+    void cacheContainer_searchContains_findsSubsetOfItems() {
+        CacheManager.onJoinServer(SERVER_A);
+        CacheManager.cacheContainer(
+            new BlockPos(5, 64, 5), "ChestBlockEntity",
+            Map.of("diamond", 5, "emerald", 3)
+        );
+
+        List<CacheManager.CacheSearchResult> results =
+            CacheManager.searchContains(new BlockPos(0, 64, 0), 50, "emerald");
+
+        Assertions.assertEquals(1, results.size());
+        Assertions.assertEquals(3, results.get(0).count,
+            "Only emerald items should match searchContains('emerald')");
+    }
+
     // ── Helper cleanup ───────────────────────────────────────────────────
 
     private void deleteCacheFileFor(String serverAddress) {

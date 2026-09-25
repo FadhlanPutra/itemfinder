@@ -1,5 +1,7 @@
 package com.lann.itemfinder;
 
+import com.mojang.blaze3d.platform.InputConstants;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.core.BlockPos;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -54,5 +56,40 @@ public class SortLogicTest {
         List<StorageScanner.SearchResult> results = new ArrayList<>();
         Assertions.assertDoesNotThrow(() -> ServerNetworkHandler.sortResults(results, PLAYER_POS, 0));
         Assertions.assertDoesNotThrow(() -> ServerNetworkHandler.sortResults(results, PLAYER_POS, 1));
+    }
+
+    @Test
+    void mainEnterKeyPicksFirstMatchingItem() {
+        KeyEvent enter = new KeyEvent(InputConstants.KEY_RETURN, InputConstants.KEYCODE_RETURN, 0);
+
+        SearchScreen.EnterAction action = SearchScreen.decideEnterAction(
+            enter, 1, true, 2, false, false
+        );
+
+        Assertions.assertEquals(SearchScreen.EnterAction.PICK_FIRST, action);
+    }
+
+    @Test
+    void numpadEnterScansAllMatches() {
+        KeyEvent numpadEnter = new KeyEvent(
+            InputConstants.KEY_NUMPADENTER, InputConstants.KEYCODE_NUMPADENTER, 0
+        );
+
+        SearchScreen.EnterAction action = SearchScreen.decideEnterAction(
+            numpadEnter, 2, true, 2, false, false
+        );
+
+        Assertions.assertEquals(SearchScreen.EnterAction.SCAN_ALL, action);
+    }
+
+    @Test
+    void nonConfirmationKeyDoesNotTriggerEnterAction() {
+        KeyEvent y = new KeyEvent(InputConstants.KEY_Y, InputConstants.KEYCODE_Y, 0);
+
+        SearchScreen.EnterAction action = SearchScreen.decideEnterAction(
+            y, 2, true, 2, false, false
+        );
+
+        Assertions.assertEquals(SearchScreen.EnterAction.NONE, action);
     }
 }

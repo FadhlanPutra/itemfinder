@@ -187,35 +187,36 @@ public class SearchScreen extends Screen {
     // ── Input handlers ──────────────────────────────────────────────────────
     @Override
     public boolean keyPressed(KeyEvent event) {
-        int keyCode = event.key();
-        if (keyCode == 256) { handleBack(); return true; } // ESC
+        if (event.isEscape()) {
+            handleBack();
+            return true;
+        }
 
-        // Enter key
-        if (keyCode == 257) {
-            EnterAction action = decideEnterAction(
-                ConfigManager.get().enterMode,
-                !matchingItems.isEmpty(),
-                lastQuery.length(),
-                showingResults,
-                showingConfig
-            );
-            if (action == EnterAction.PICK_FIRST) {
-                doSearch(matchingItems.get(0));
-                return true;
-            } else if (action == EnterAction.SCAN_ALL) {
-                doSearchAll();
-                return true;
-            }
+        EnterAction action = decideEnterAction(
+            event,
+            ConfigManager.get().enterMode,
+            !matchingItems.isEmpty(),
+            lastQuery.length(),
+            showingResults,
+            showingConfig
+        );
+        if (action == EnterAction.PICK_FIRST) {
+            doSearch(matchingItems.get(0));
+            return true;
+        } else if (action == EnterAction.SCAN_ALL) {
+            doSearchAll();
+            return true;
         }
 
         return super.keyPressed(event);
     }
 
-    /**
-     * Menentukan aksi yang harus dijalankan saat Enter ditekan, sesuai
-     * config "Enter Key" (0=off, 1=pilih teratas, 2=scan all). Dipisah dari
-     * keyPressed() supaya bisa di-unit-test tanpa instance Screen.
-     */
+    static EnterAction decideEnterAction(KeyEvent event, int enterMode, boolean hasMatchingItems,
+                                          int queryLength, boolean showingResults, boolean showingConfig) {
+        if (!event.isConfirmation()) return EnterAction.NONE;
+        return decideEnterAction(enterMode, hasMatchingItems, queryLength, showingResults, showingConfig);
+    }
+
     static EnterAction decideEnterAction(int enterMode, boolean hasMatchingItems,
                                           int queryLength, boolean showingResults, boolean showingConfig) {
         if (showingResults || showingConfig) return EnterAction.NONE;
@@ -348,6 +349,14 @@ public class SearchScreen extends Screen {
             ParticleTrail.setTargets(results);
         }
         ClientNetworkHandler.onResultReceived = null;
+
+        if (!fromCache) {
+            for (StorageScanner.SearchResult r : results) {
+                if (r.items != null && !r.items.isEmpty()) {
+                    CacheManager.cacheContainer(r.pos, r.containerType, r.items);
+                }
+            }
+        }
     }
 
     private void handleCacheResults(List<CacheManager.CacheSearchResult> cacheResults, String label) {
