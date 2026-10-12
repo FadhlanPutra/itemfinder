@@ -49,7 +49,7 @@ public class HighlightRenderer {
     private static void renderHighlights(LevelRenderContext context) {
         Minecraft client = Minecraft.getInstance();
         if (client.gameRenderer == null || client.player == null) return;
-        var camera = client.gameRenderer.mainCamera().position();
+        var camera = client.gameRenderer.getMainCamera().position();
         PoseStack poseStack = context.poseStack();
         if (poseStack == null) return;
 

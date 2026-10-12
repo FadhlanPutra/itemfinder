@@ -40,7 +40,7 @@ public class ItemFinderClient implements ClientModInitializer {
             while (KeyBindings.OPEN_SEARCH.consumeClick()) {
                 ItemFinderMod.LOGGER.info("[ItemFinder] OPEN_SEARCH key consumed, opening SearchScreen");
                 if (client.player != null) {
-                    client.gui.setScreen(new SearchScreen());
+                    client.setScreen(new SearchScreen());
                 }
             }
         });

@@ -44,32 +44,28 @@ public class StorageScanner {
 
         public String format() {
             return "§e" + friendlyName(containerType) +
-                   " §fat §b" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() +
+                   " §fdi §b" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() +
                    " §f→ §a" + count + " item";
         }
 
-        private String friendlyName(String type) {
+        public static String friendlyName(String type) {
             if (type.equals("EnderChestBlockEntity")) return "Ender Chest";
             if (type.equals("MinecartChest")) return "Minecart Chest";
-            if (type.equals("ChestBoat")) return "Chest Boat";
-            if (type.equals("MinecartHopper")) return "Minecart with Hopper";
-
-            String t = type.toLowerCase();
-            if (t.contains("shulker_box")) return "Shulker Box";
-            if (t.equals("trapped_chest")) return "Trapped Chest";
-            if (t.equals("chest")) return "Chest";
-            if (t.equals("barrel")) return "Barrel";
-            if (t.equals("blast_furnace")) return "Blast Furnace";
-            if (t.equals("smoker")) return "Smoker";
-            if (t.equals("furnace")) return "Furnace";
-            if (t.equals("hopper")) return "Hopper";
-            if (t.equals("dispenser")) return "Dispenser";
-            if (t.equals("dropper")) return "Dropper";
-
-            return capitalizeWords(t.replace('_', ' '));
+            if (type.contains("ChestBoat")) return "Chest Boat";
+            if (type.contains("ShulkerBox")) return "Shulker Box";
+            if (type.contains("TrappedChest")) return "Trapped Chest";
+            if (type.contains("Chest")) return "Chest";
+            if (type.contains("Barrel")) return "Barrel";
+            if (type.contains("BlastFurnace")) return "Blast Furnace";
+            if (type.contains("Smoker")) return "Smoker";
+            if (type.contains("Furnace")) return "Furnace";
+            if (type.contains("Hopper")) return "Hopper";
+            if (type.contains("Dispenser")) return "Dispenser";
+            if (type.contains("Dropper")) return "Dropper";
+            return type.replace("BlockEntity", "");
         }
 
-        private String capitalizeWords(String s) {
+        private static String capitalizeWords(String s) {
             String[] parts = s.split(" ");
             StringBuilder sb = new StringBuilder();
             for (String part : parts) {

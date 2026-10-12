@@ -86,7 +86,7 @@ public class ModConfigScreen extends Screen {
         int doneY = rowY(ROW_COUNT) + HINT_PAD + 8;
         this.addRenderableWidget(Button.builder(
             Component.translatable("gui.done"),
-            b -> { ConfigManager.save(); this.minecraft.gui.setScreen(parent); }
+            b -> { ConfigManager.save(); this.minecraft.setScreen(parent); }
         ).bounds(cx - 50, doneY, 100, 20).build());
     }
 
@@ -135,6 +135,6 @@ public class ModConfigScreen extends Screen {
     @Override
     public void onClose() {
         ConfigManager.save();
-        this.minecraft.gui.setScreen(parent);
+        this.minecraft.setScreen(parent);
     }
 }

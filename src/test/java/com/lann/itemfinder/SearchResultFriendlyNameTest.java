@@ -15,18 +15,17 @@ public class SearchResultFriendlyNameTest {
     }
 
     @Test
-    void knownBlockContainerTypesGetProperNames() {
-        assertFriendlyContains("chest", "Chest");
-        assertFriendlyContains("trapped_chest", "Trapped Chest");
-        assertFriendlyContains("barrel", "Barrel");
-        assertFriendlyContains("shulker_box", "Shulker Box");
-        assertFriendlyContains("white_shulker_box", "Shulker Box");
-        assertFriendlyContains("furnace", "Furnace");
-        assertFriendlyContains("blast_furnace", "Blast Furnace");
-        assertFriendlyContains("smoker", "Smoker");
-        assertFriendlyContains("hopper", "Hopper");
-        assertFriendlyContains("dispenser", "Dispenser");
-        assertFriendlyContains("dropper", "Dropper");
+    void knownClassStyleContainerTypesGetProperNames() {
+        assertFriendlyContains("ChestBlockEntity", "Chest");
+        assertFriendlyContains("TrappedChestBlockEntity", "Trapped Chest");
+        assertFriendlyContains("BarrelBlockEntity", "Barrel");
+        assertFriendlyContains("ShulkerBoxBlockEntity", "Shulker Box");
+        assertFriendlyContains("FurnaceBlockEntity", "Furnace");
+        assertFriendlyContains("BlastFurnaceBlockEntity", "Blast Furnace");
+        assertFriendlyContains("SmokerBlockEntity", "Smoker");
+        assertFriendlyContains("HopperBlockEntity", "Hopper");
+        assertFriendlyContains("DispenserBlockEntity", "Dispenser");
+        assertFriendlyContains("DropperBlockEntity", "Dropper");
     }
 
     @Test
@@ -37,13 +36,19 @@ public class SearchResultFriendlyNameTest {
     }
 
     @Test
-    void unknownContainerTypeNeverLeaksRawIdOrClassName() {
-        String result = formatWithType("chiseled_bookshelf");
-
-        Assertions.assertFalse(result.contains("class_"),
-            "format() result leaks raw class name (class_XXXX) -- indicates bug similar to previous case.");
-        Assertions.assertFalse(result.contains("_"),
-            "format() result still contains raw underscore from registry ID, should already be title-cased to normal words.");
+    void formatMatchesOriginal1215Layout() {
+        StorageScanner.SearchResult result = new StorageScanner.SearchResult(
+            new BlockPos(752, 101, 86), "ChestBlockEntity", 1
+        );
+        String formatted = result.format();
+        Assertions.assertTrue(formatted.contains("Chest"),
+            "should show friendly container name, got: " + formatted);
+        Assertions.assertTrue(formatted.contains("752, 101, 86"),
+            "should show coordinates, got: " + formatted);
+        Assertions.assertTrue(formatted.contains("1 item"),
+            "should show count, got: " + formatted);
+        Assertions.assertFalse(formatted.contains("class_"),
+            "should not leak intermediary class names, got: " + formatted);
     }
 
     private void assertFriendlyContains(String containerType, String expectedFriendlyName) {

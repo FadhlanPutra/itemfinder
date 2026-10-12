@@ -60,7 +60,7 @@ public class SortLogicTest {
 
     @Test
     void mainEnterKeyPicksFirstMatchingItem() {
-        KeyEvent enter = new KeyEvent(InputConstants.KEY_RETURN, InputConstants.KEYCODE_RETURN, 0);
+        KeyEvent enter = new KeyEvent(InputConstants.KEY_RETURN, 0, 0);
 
         SearchScreen.EnterAction action = SearchScreen.decideEnterAction(
             enter, 1, true, 2, false, false
@@ -72,7 +72,7 @@ public class SortLogicTest {
     @Test
     void numpadEnterScansAllMatches() {
         KeyEvent numpadEnter = new KeyEvent(
-            InputConstants.KEY_NUMPADENTER, InputConstants.KEYCODE_NUMPADENTER, 0
+            InputConstants.KEY_NUMPADENTER, 0, 0
         );
 
         SearchScreen.EnterAction action = SearchScreen.decideEnterAction(
@@ -84,7 +84,7 @@ public class SortLogicTest {
 
     @Test
     void nonConfirmationKeyDoesNotTriggerEnterAction() {
-        KeyEvent y = new KeyEvent(InputConstants.KEY_Y, InputConstants.KEYCODE_Y, 0);
+        KeyEvent y = new KeyEvent(InputConstants.KEY_Y, 0, 0);
 
         SearchScreen.EnterAction action = SearchScreen.decideEnterAction(
             y, 2, true, 2, false, false
