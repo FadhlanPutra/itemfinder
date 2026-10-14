@@ -1,16 +1,18 @@
 package com.lann.itemfinder;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.joml.Matrix4f;
+
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.core.BlockPos;
-import org.joml.Matrix4f;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class HighlightRenderer {
 
@@ -24,7 +26,8 @@ public class HighlightRenderer {
     public static void setHighlights(java.util.List<StorageScanner.SearchResult> results) {
         highlightedPositions.clear();
         for (StorageScanner.SearchResult result : results) {
-            highlightedPositions.put(result.pos, result.containerType + " (" + result.count + ")");
+            // Store the registry id; the HUD resolves the translated name at render time.
+            highlightedPositions.put(result.pos, result.containerType);
         }
         int duration = ConfigManager.get().highlightDurationSeconds;
         highlightUntil = System.currentTimeMillis() + (duration * 1000L);

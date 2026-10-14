@@ -10,6 +10,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -22,8 +23,11 @@ public class SearchScreen extends Screen {
     private List<ItemStack> matchingItems = new ArrayList<>();
     private List<StorageScanner.SearchResult> searchResults = new ArrayList<>();
     private String lastQuery   = "";
-    private String statusMessage = "";
-    private boolean showingResults = false;
+    private Component statusMessage = Component.empty();
+    private String statusQuery = "";
+    private int statusCount = 0;
+    private boolean statusFound = false;
+    private boolean statusCache = false;    private boolean showingResults = false;
     private boolean showingConfig  = false;
     private int hoveredSlot = -1;
     private int resultScrollOffset = 0;
@@ -154,8 +158,11 @@ public class SearchScreen extends Screen {
         showingResults = false;
         showingConfig  = false;
         searchResults.clear();
-        statusMessage  = "";
-        resultScrollOffset = 0;
+        statusMessage  = Component.empty();
+        statusQuery = "";
+        statusCount = 0;
+        statusFound = false;
+        statusCache = false;        resultScrollOffset = 0;
         lastQuery = query.trim().toLowerCase();
 
         if (lastQuery.length() < 2) { matchingItems.clear(); return; }
@@ -173,9 +180,9 @@ public class SearchScreen extends Screen {
     }
 
     /**
-     * Menentukan apakah sebuah item cocok dengan query, sesuai config
-     * "Search Language" (searchByEnglish). Dipisah dari onQueryChanged()
-     * supaya bisa di-unit-test langsung tanpa registry item Minecraft.
+     * Determines whether an item matches the query, per the "Search Language"
+     * config (searchByEnglish). Separated from onQueryChanged() so it can be
+     * unit-tested directly without the Minecraft item registry.
      */
     static boolean matchesQuery(String itemId, String displayName, String query, boolean searchByEnglish) {
         if (searchByEnglish) {
@@ -275,24 +282,29 @@ public class SearchScreen extends Screen {
         if (client.player == null || client.level == null) return;
 
         ItemFinderMod.LOGGER.info("[ItemFinder] doSearch invoked for " + targetItem);
-        statusMessage = "§e" + Component.translatable("gui.itemfinder.searching").getString();
+        statusMessage = Component.translatable("gui.itemfinder.searching");
+        statusCount = 0;
+        statusFound = false;
+        statusCache = false;
         showingResults = true;
         searchResults.clear();
         resultScrollOffset = 0;
 
         String targetId = BuiltInRegistries.ITEM.getKey(targetItem.getItem()).getPath();
-        String itemName = targetItem.getHoverName().getString();
+        String typedQuery = searchBox != null ? searchBox.getValue().trim() : "";
+        String label = typedQuery.isEmpty() ? targetItem.getHoverName().getString() : typedQuery;
+        statusQuery = label;
 
         ItemFinderMod.LOGGER.info("[ItemFinder] doSearch: serverHasMod=" + ServerDetector.serverHasMod() + ", targetId=" + targetId);
         if (ServerDetector.serverHasMod()) {
-            ClientNetworkHandler.onResultReceived = results -> handleResults(results, itemName, false);
+            ClientNetworkHandler.onResultReceived = results -> handleResults(results, label, false);
             ClientNetworkHandler.sendSearchAllRequest(targetId);
         } else {
             BlockPos playerPos = client.player.blockPosition();
             List<CacheManager.CacheSearchResult> cacheResults =
                 CacheManager.searchExact(playerPos, ConfigManager.get().radius, targetId);
             ItemFinderMod.LOGGER.info("[ItemFinder] doSearch cache mode: " + cacheResults.size() + " results");
-            handleCacheResults(cacheResults, itemName);
+            handleCacheResults(cacheResults, label);
         }
     }
 
@@ -302,22 +314,26 @@ public class SearchScreen extends Screen {
         if (client.player == null || client.level == null) return;
 
         ItemFinderMod.LOGGER.info("[ItemFinder] doSearchAll invoked, lastQuery='" + lastQuery + "', serverHasMod=" + ServerDetector.serverHasMod());
-        statusMessage = "§e" + Component.translatable("gui.itemfinder.searching").getString();
+        statusMessage = Component.translatable("gui.itemfinder.searching");
+        statusCount = 0;
+        statusFound = false;
+        statusCache = false;
         showingResults = true;
         searchResults.clear();
         resultScrollOffset = 0;
 
         String query = lastQuery;
+        statusQuery = query;
 
         if (ServerDetector.serverHasMod()) {
-            ClientNetworkHandler.onResultReceived = results -> handleResults(results, "\"" + query + "\"", false);
+            ClientNetworkHandler.onResultReceived = results -> handleResults(results, query, false);
             ClientNetworkHandler.sendSearchAllRequest(query);
         } else {
             BlockPos playerPos = client.player.blockPosition();
             List<CacheManager.CacheSearchResult> cacheResults =
                 CacheManager.searchContains(playerPos, ConfigManager.get().radius, query);
             ItemFinderMod.LOGGER.info("[ItemFinder] doSearchAll cache mode: " + cacheResults.size() + " results");
-            handleCacheResults(cacheResults, "\"" + query + "\"");
+            handleCacheResults(cacheResults, query);
         }
     }
 
@@ -326,24 +342,20 @@ public class SearchScreen extends Screen {
         Minecraft client = Minecraft.getInstance();
         searchResults = results;
 
-        String prefix = fromCache ? "§e⚠ §7(cache) " : "";
-
         if (results.isEmpty()) {
-            statusMessage = prefix + "§c" + Component.translatable("gui.itemfinder.not_found").getString()
-                + " §f" + label + " §c"
-                + Component.translatable("gui.itemfinder.in_radius").getString()
-                + " §f" + ConfigManager.get().radius + " §c"
-                + Component.translatable("gui.itemfinder.block").getString();
+            statusMessage = ResultFormatter.notFound(label, ConfigManager.get().radius, fromCache);
+            statusFound = false;
         } else {
-            statusMessage = prefix + "§a" + Component.translatable("gui.itemfinder.found").getString()
-                + " §f" + results.size() + " §a"
-                + Component.translatable("gui.itemfinder.container").getString();
+            statusFound = true;
+            statusCount = results.size();
+            statusQuery = label;
+            statusCache = fromCache;
+            statusMessage = statusComponent();
             if (ConfigManager.get().sendToChat) {
-                client.player.sendSystemMessage(
-                    Component.literal("§6=== Item Finder: §f" + label
-                        + (fromCache ? " §7[cache]" : "") + " §6==="));
+                client.player.sendSystemMessage(ResultFormatter.chatHeader(label, fromCache));
+                BlockPos pp = client.player.blockPosition();
                 for (var r : results)
-                    client.player.sendSystemMessage(Component.literal(r.format()));
+                    client.player.sendSystemMessage(ResultFormatter.resultLine(r, pp));
             }
             HighlightRenderer.setHighlights(results);
             ParticleTrail.setTargets(results);
@@ -368,23 +380,20 @@ public class SearchScreen extends Screen {
 
         searchResults = results;
 
-        String prefix = "§e⚠ §7(cache) ";
-
         if (results.isEmpty()) {
-            statusMessage = prefix + "§c" + Component.translatable("gui.itemfinder.not_found").getString()
-                + " §f" + label + " §c"
-                + Component.translatable("gui.itemfinder.in_radius").getString()
-                + " §f" + ConfigManager.get().radius + " §c"
-                + Component.translatable("gui.itemfinder.block").getString();
+            statusMessage = ResultFormatter.notFound(label, ConfigManager.get().radius, true);
+            statusFound = false;
         } else {
-            statusMessage = prefix + "§a" + Component.translatable("gui.itemfinder.found").getString()
-                + " §f" + results.size() + " §a"
-                + Component.translatable("gui.itemfinder.container").getString();
+            statusFound = true;
+            statusCount = results.size();
+            statusQuery = label;
+            statusCache = true;
+            statusMessage = statusComponent();
             if (ConfigManager.get().sendToChat) {
-                client.player.sendSystemMessage(
-                    Component.literal("§6=== Item Finder: §f" + label + " §7[cache] §6==="));
+                client.player.sendSystemMessage(ResultFormatter.chatHeader(label, true));
+                BlockPos pp = client.player.blockPosition();
                 for (var r : cacheResults)
-                    client.player.sendSystemMessage(Component.literal(r.format()));
+                    client.player.sendSystemMessage(ResultFormatter.resultLine(r.toSearchResult(), pp));
             }
             HighlightRenderer.setHighlights(results);
             ParticleTrail.setTargets(results);
@@ -392,8 +401,18 @@ public class SearchScreen extends Screen {
 
         if (ConfigManager.get().sendToChat && !results.isEmpty()) {
             client.player.sendSystemMessage(
-                Component.literal("§e⚠ §7" + Component.translatable("gui.itemfinder.cache_warning").getString()));
+                Component.translatable("gui.itemfinder.cache_warning"));
         }
+    }
+
+    /** Summary component, rebuilt at render so it follows the game language. */
+    private Component statusComponent() {
+        if (!statusFound) return statusMessage;
+        if (statusCache) return Component.translatable("gui.itemfinder.summary.cache",
+            statusQuery, statusCount,
+            Component.translatable(statusCount == 1
+                ? "gui.itemfinder.container.one" : "gui.itemfinder.container.other"));
+        return ResultFormatter.summary(statusQuery, statusCount);
     }
 
     private void handleBack() {
@@ -403,8 +422,11 @@ public class SearchScreen extends Screen {
         } else if (showingResults) {
             showingResults = false;
             searchResults.clear();
-            statusMessage = "";
-        } else {
+            statusMessage = Component.empty();
+            statusQuery = "";
+            statusCount = 0;
+            statusFound = false;
+            statusCache = false;        } else {
             this.onClose();
         }
     }
@@ -426,8 +448,8 @@ public class SearchScreen extends Screen {
         else if (showingResults)  renderResults(g);
         else                      renderItemGrid(g, mx, my);
 
-        if (!statusMessage.isEmpty() && !showingConfig)
-            TextDrawer.drawCenteredString(g, statusMessage, this.width / 2, this.height - 40, 0xFFFFFF);
+        if (!statusMessage.equals(Component.empty()) && !showingConfig)
+            TextDrawer.drawCenteredString(g, statusComponent(), this.width / 2, this.height - 40, 0xFFFFFF);
 
         if (!showingResults && !showingConfig && hoveredSlot >= 0 && hoveredSlot < matchingItems.size())
             g.setTooltipForNextFrame(this.font, matchingItems.get(hoveredSlot), mx, my);
@@ -435,10 +457,10 @@ public class SearchScreen extends Screen {
 
     private void renderItemGrid(GuiGraphicsExtractor g, int mx, int my) {
         if (matchingItems.isEmpty()) {
-            String msg = lastQuery.length() >= 2
-                ? Component.translatable("gui.itemfinder.no_match").getString()
-                : Component.translatable("gui.itemfinder.search_min").getString();
-            TextDrawer.drawCenteredString(g, "§7" + msg, this.width / 2, 70, 0xAAAAAA);
+            Component msg = lastQuery.length() >= 2
+                ? Component.translatable("gui.itemfinder.no_match")
+                : Component.translatable("gui.itemfinder.search_min");
+            TextDrawer.drawCenteredString(g, msg.copy().withStyle(ChatFormatting.GRAY), this.width / 2, 70, 0xAAAAAA);
             return;
         }
         int gx = this.width / 2 - (GRID_COLS * ITEM_SIZE) / 2, gy = 60;
@@ -452,7 +474,8 @@ public class SearchScreen extends Screen {
             g.item(matchingItems.get(i), ix + 1, iy + 1);
         }
         TextDrawer.drawCenteredString(g,
-            "§7" + matchingItems.size() + Component.translatable("gui.itemfinder.click_to_scan").getString(),
+            Component.literal(String.valueOf(matchingItems.size())).withStyle(ChatFormatting.GRAY)
+                .append(Component.translatable("gui.itemfinder.click_to_scan").copy().withStyle(ChatFormatting.GRAY)),
             this.width / 2, gy + gh + 6, 0xAAAAAA);
     }
 
@@ -468,14 +491,13 @@ public class SearchScreen extends Screen {
             int idx = i + resultScrollOffset;
             if (idx >= searchResults.size()) break;
             var r = searchResults.get(idx);
-            int dist = (int) Math.sqrt(pp.distSqr(r.pos));
-            TextDrawer.drawString(g, r.format() + " §7(" + dist + "m)", px, sy + i * 13, 0xFFFFFF);
+            TextDrawer.drawString(g, ResultFormatter.resultLine(r, pp), px, sy + i * 13, 0xFFFFFF);
         }
         if (searchResults.size() > MAX_VISIBLE_RESULTS) {
             TextDrawer.drawCenteredString(g,
-                "§7scroll ↑↓ (" + (resultScrollOffset + 1) + "-" +
-                Math.min(resultScrollOffset + MAX_VISIBLE_RESULTS, searchResults.size()) +
-                " / " + searchResults.size() + ")",
+                Component.literal("scroll ↑↓ (" + (resultScrollOffset + 1) + "-" +
+                    Math.min(resultScrollOffset + MAX_VISIBLE_RESULTS, searchResults.size()) +
+                    " / " + searchResults.size() + ")").copy().withStyle(ChatFormatting.GRAY),
                 this.width / 2, sy + visible * 13 + 8, 0xAAAAAA);
         }
     }
@@ -502,45 +524,49 @@ public class SearchScreen extends Screen {
         int panelTop = cfgRowY(0) - CFG_TITLE_PAD - 10;
 
         TextDrawer.drawCenteredString(g,
-            Component.literal("§6§lConfiguration"),
+            Component.translatable("gui.itemfinder.config_title").copy().withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD),
             cx, panelTop + 6, 0xFFFFFF);
 
         TextDrawer.drawString(g,
-            Component.literal("§f" + Component.translatable("gui.itemfinder.config_radius").getString() + ": §e" + cfg.radius + " §7blocks"),
+            Component.translatable("gui.itemfinder.config_radius").copy().withStyle(ChatFormatting.WHITE)
+                .append(Component.literal(" " + cfg.radius + " ").withStyle(ChatFormatting.YELLOW))
+                .append(Component.translatable("gui.itemfinder.config.blocks").copy().withStyle(ChatFormatting.GRAY)),
             labelX, cfgRowY(0) + off, 0xFFFFFF);
-
         TextDrawer.drawString(g,
-            Component.literal("§f" + Component.translatable("gui.itemfinder.config_highlight_duration").getString() + ": §e" + cfg.highlightDurationSeconds + "s"),
+            Component.translatable("gui.itemfinder.config_highlight_duration").copy().withStyle(ChatFormatting.WHITE)
+                .append(Component.literal(" " + cfg.highlightDurationSeconds + "s").withStyle(ChatFormatting.YELLOW)),
             labelX, cfgRowY(1) + off, 0xFFFFFF);
-
         TextDrawer.drawString(g,
-            Component.literal("§f" + Component.translatable("gui.itemfinder.config_highlight_pulse").getString() + ": §e" + (cfg.highlightPulse ? "ON" : "OFF")),
+            Component.translatable("gui.itemfinder.config_highlight_pulse").copy().withStyle(ChatFormatting.WHITE)
+                .append(Component.literal(" " + (cfg.highlightPulse ? "ON" : "OFF")).withStyle(ChatFormatting.YELLOW)),
             labelX, cfgRowY(2) + off, 0xFFFFFF);
 
         String sortLabel = Component.translatable(
             cfg.sortMode == 0 ? "gui.itemfinder.sort_distance" : "gui.itemfinder.sort_count"
         ).getString();
         TextDrawer.drawString(g,
-            Component.literal("§f" + Component.translatable("gui.itemfinder.config_sort").getString() + ": §e" + sortLabel),
+            Component.translatable("gui.itemfinder.config_sort").copy().withStyle(ChatFormatting.WHITE)
+                .append(Component.literal(" " + sortLabel).withStyle(ChatFormatting.YELLOW)),
             labelX, cfgRowY(3) + off, 0xFFFFFF);
-
         TextDrawer.drawString(g,
-            Component.literal("§f" + Component.translatable("gui.itemfinder.config_chat").getString() + ": §e" + (cfg.sendToChat ? "ON" : "OFF")),
+            Component.translatable("gui.itemfinder.config_chat").copy().withStyle(ChatFormatting.WHITE)
+                .append(Component.literal(" " + (cfg.sendToChat ? "ON" : "OFF")).withStyle(ChatFormatting.YELLOW)),
             labelX, cfgRowY(4) + off, 0xFFFFFF);
-
         TextDrawer.drawString(g,
-            Component.literal("§f" + Component.translatable("gui.itemfinder.config_particle").getString() + ": §e" + (cfg.particleTrail ? "ON" : "OFF")),
+            Component.translatable("gui.itemfinder.config_particle").copy().withStyle(ChatFormatting.WHITE)
+                .append(Component.literal(" " + (cfg.particleTrail ? "ON" : "OFF")).withStyle(ChatFormatting.YELLOW)),
             labelX, cfgRowY(5) + off, 0xFFFFFF);
-
         TextDrawer.drawString(g,
-            Component.literal("§f" + Component.translatable("gui.itemfinder.config_particle_type").getString() + ": §e" + cfg.particleType),
+            Component.translatable("gui.itemfinder.config_particle_type").copy().withStyle(ChatFormatting.WHITE)
+                .append(Component.literal(" " + cfg.particleType).withStyle(ChatFormatting.YELLOW)),
             labelX, cfgRowY(6) + off, 0xFFFFFF);
 
         String langLabel = Component.translatable(
             cfg.searchByEnglish ? "gui.itemfinder.search_lang_english" : "gui.itemfinder.search_lang_game"
         ).getString();
         TextDrawer.drawString(g,
-            Component.literal("§f" + Component.translatable("gui.itemfinder.config_search_lang").getString() + ": §e" + langLabel),
+            Component.translatable("gui.itemfinder.config_search_lang").copy().withStyle(ChatFormatting.WHITE)
+                .append(Component.literal(" " + langLabel).withStyle(ChatFormatting.YELLOW)),
             labelX, cfgRowY(7) + off, 0xFFFFFF);
 
         String enterLabel = Component.translatable(
@@ -551,11 +577,12 @@ public class SearchScreen extends Screen {
             }
         ).getString();
         TextDrawer.drawString(g,
-            Component.literal("§f" + Component.translatable("gui.itemfinder.config_enter_mode").getString() + ": §e" + enterLabel),
+            Component.translatable("gui.itemfinder.config_enter_mode").copy().withStyle(ChatFormatting.WHITE)
+                .append(Component.literal(" " + enterLabel).withStyle(ChatFormatting.YELLOW)),
             labelX, cfgRowY(8) + off, 0xFFFFFF);
 
         TextDrawer.drawCenteredString(g,
-            Component.literal("§7" + Component.translatable("gui.itemfinder.config_save_hint").getString()),
+            Component.translatable("gui.itemfinder.config_save_hint").copy().withStyle(ChatFormatting.GRAY),
             cx, hintY, 0xAAAAAA);
     }
 

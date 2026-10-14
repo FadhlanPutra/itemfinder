@@ -1,7 +1,6 @@
 package com.lann.itemfinder;
 
 import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.PowerParticleOption;
 import org.junit.jupiter.api.Assertions;

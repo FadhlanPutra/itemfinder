@@ -1,15 +1,21 @@
 package com.lann.itemfinder;
 
-import com.google.gson.*;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.Reader;
+import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.Identifier;
-
-import java.io.*;
-import java.nio.file.*;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
 
 public class CacheManager {
 
@@ -179,8 +185,12 @@ public class CacheManager {
             return new StorageScanner.SearchResult(pos, containerType, count);
         }
 
+        /**
+         * Legacy string form, kept for logs only. Player-visible text must go
+         * through {@code ResultFormatter} (client side) so it is translated.
+         */
         public String format() {
-            return toSearchResult().format() + " §8(" + ageString + ")";
+            return toSearchResult().format() + " (" + ageString + ")";
         }
     }
 

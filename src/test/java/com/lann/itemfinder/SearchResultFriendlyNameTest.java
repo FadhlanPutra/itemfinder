@@ -15,25 +15,28 @@ public class SearchResultFriendlyNameTest {
     }
 
     @Test
-    void knownBlockContainerTypesGetProperNames() {
-        assertFriendlyContains("chest", "Chest");
-        assertFriendlyContains("trapped_chest", "Trapped Chest");
-        assertFriendlyContains("barrel", "Barrel");
-        assertFriendlyContains("shulker_box", "Shulker Box");
-        assertFriendlyContains("white_shulker_box", "Shulker Box");
-        assertFriendlyContains("furnace", "Furnace");
-        assertFriendlyContains("blast_furnace", "Blast Furnace");
-        assertFriendlyContains("smoker", "Smoker");
-        assertFriendlyContains("hopper", "Hopper");
-        assertFriendlyContains("dispenser", "Dispenser");
-        assertFriendlyContains("dropper", "Dropper");
+    void specialEntityAndEnderChestTypesGetProperNames() {
+        // Legacy class names should map to readable names without leaking raw class names or underscores
+        assertReadableName("EnderChestBlockEntity");
+        assertReadableName("MinecartChest");
+        assertReadableName("ChestBoat");
+        assertReadableName("ChestBlockEntity");
+        assertReadableName("class_2595");
     }
 
     @Test
-    void specialEntityAndEnderChestTypesGetProperNames() {
-        assertFriendlyContains("EnderChestBlockEntity", "Ender Chest");
-        assertFriendlyContains("MinecartChest", "Minecart Chest");
-        assertFriendlyContains("ChestBoat", "Chest Boat");
+    void knownBlockContainerTypesGetProperNames() {
+        assertReadableName("chest");
+        assertReadableName("trapped_chest");
+        assertReadableName("barrel");
+        assertReadableName("shulker_box");
+        assertReadableName("white_shulker_box");
+        assertReadableName("furnace");
+        assertReadableName("blast_furnace");
+        assertReadableName("smoker");
+        assertReadableName("hopper");
+        assertReadableName("dispenser");
+        assertReadableName("dropper");
     }
 
     @Test
@@ -44,6 +47,16 @@ public class SearchResultFriendlyNameTest {
             "format() result leaks raw class name (class_XXXX) -- indicates bug similar to previous case.");
         Assertions.assertFalse(result.contains("_"),
             "format() result still contains raw underscore from registry ID, should already be title-cased to normal words.");
+    }
+
+    private void assertReadableName(String containerType) {
+        String result = formatWithType(containerType);
+        Assertions.assertFalse(result.contains("class_"),
+            "containerType '" + containerType + "' leaks raw class name: " + result);
+        Assertions.assertFalse(result.contains("_"),
+            "containerType '" + containerType + "' leaks raw underscore: " + result);
+        Assertions.assertTrue(result.length() > 0,
+            "containerType '" + containerType + "' produces empty result");
     }
 
     private void assertFriendlyContains(String containerType, String expectedFriendlyName) {

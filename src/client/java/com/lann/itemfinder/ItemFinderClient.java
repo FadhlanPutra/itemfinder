@@ -1,5 +1,8 @@
 package com.lann.itemfinder;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
@@ -7,15 +10,11 @@ import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.core.registries.BuiltInRegistries;
-
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class ItemFinderClient implements ClientModInitializer {
     private static BlockPos lastUsedPos = null;
@@ -120,9 +119,9 @@ public class ItemFinderClient implements ClientModInitializer {
         }
         var be = client.level.getBlockEntity(lastUsedPos);
         if (be instanceof Container) {
-            String typeName = be.getClass().getSimpleName();
-            ItemFinderMod.LOGGER.info("[ItemFinder] cacheOpenedContainer: cached at " + lastUsedPos + " type=" + typeName);
-            CacheManager.cacheContainer(lastUsedPos, typeName, items);
+            String typeId = ContainerDisplayNames.blockId(be);
+            ItemFinderMod.LOGGER.info("[ItemFinder] cacheOpenedContainer: cached at " + lastUsedPos + " type=" + typeId);
+            CacheManager.cacheContainer(lastUsedPos, typeId, items);
         } else {
             ItemFinderMod.LOGGER.info("[ItemFinder] cacheOpenedContainer: no container at lastUsedPos");
         }

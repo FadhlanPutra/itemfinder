@@ -7,16 +7,16 @@ Item Finder lets you search for any item across all your nearby storage containe
 
 ## 📸 Screenshots
 
-![Search Screen](https://raw.githubusercontent.com/fadhlanputra/itemfinder/main/screenshots/Search_Screen.png)
+![Search Screen](https://raw.githubusercontent.com/fadhlanputra/itemfinder/HEAD/screenshots/Search_Screen.png)
 Open the search screen with a single keypress, the game keeps running in the background
 
-![Item Grid](https://raw.githubusercontent.com/fadhlanputra/itemfinder/main/screenshots/Item_Grid.png)
+![Item Grid](https://raw.githubusercontent.com/fadhlanputra/itemfinder/HEAD/screenshots/Item_Grid.png)
 Type "stone" and see 93 matching items as icons. Click one to scan, or press Enter to search instantly
 
-![Highlight and Particle Trail](https://raw.githubusercontent.com/fadhlanputra/itemfinder/main/screenshots/Highlight.png)
+![Highlight and Particle Trail](https://raw.githubusercontent.com/fadhlanputra/itemfinder/HEAD/screenshots/Highlight.png)
 Found containers glow yellow. Particles stream toward them. The HUD shows name and distance for each
 
-![Configuration Panel](https://raw.githubusercontent.com/fadhlanputra/itemfinder/main/screenshots/Configuration.png)
+![Configuration Panel](https://raw.githubusercontent.com/fadhlanputra/itemfinder/HEAD/screenshots/Configuration.png)
 Everything is configurable in-game, no config files to edit
 
 ---
