@@ -1,0 +1,60 @@
+name: Sync Documentation
+
+on:
+  push:
+    branches: [26.3]
+    paths:
+      - README.md
+      - CHANGELOG.md
+      - LICENSE
+      - CONTRIBUTING.md
+      - screenshots/**
+      - src/main/resources/assets/itemfinder/icon.png
+      - .github/workflows/sync-docs.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-docs
+  cancel-in-progress: false
+
+env:
+  SOURCE: "26.3"
+  FILES: "README.md CHANGELOG.md LICENSE CONTRIBUTING.md screenshots src/main/resources/assets/itemfinder/icon.png"
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync docs to version branches
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          TARGETS=$(git for-each-ref --format='%(refname:short)' refs/remotes/origin \
+            | sed 's#^origin/##' \
+            | grep -E '^[0-9]+(\.[0-9]+)+$' \
+            | grep -vx "$SOURCE" || true)
+
+          FAIL=0
+          for branch in $TARGETS; do
+            echo "== $branch"
+            git checkout -q -B "$branch" "origin/$branch"
+            for f in $FILES; do
+              if git cat-file -e "origin/$SOURCE:$f" 2>/dev/null; then
+                git checkout "origin/$SOURCE" -- "$f"
+              fi
+            done
+            if git diff --cached --quiet; then
+              echo "no changes"
+            else
+              git commit -q -m "docs: sync from $SOURCE [skip ci]"
+              git push origin "HEAD:$branch" || { echo "push failed: $branch"; FAIL=1; }
+            fi
+          done
+          exit $FAIL
