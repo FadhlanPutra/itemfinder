@@ -2,53 +2,53 @@ package com.lann.itemfinder;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.Minecraft;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ServerDetector {
 
     private static boolean serverHasMod = false;
     private static String currentAddress = "singleplayer";
+    private static AtomicInteger joinTickCounter = null;
 
     public static boolean serverHasMod() {
         return serverHasMod;
     }
 
     public static void register() {
-        // Saat join server
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
-            // Deteksi address
             var serverData = client.getCurrentServer();
             currentAddress = (serverData != null) ? serverData.ip : "singleplayer";
 
-            // Coba kirim handshake packet ke server
-            // Kalau server punya mod, dia akan reply
             serverHasMod = false;
+            joinTickCounter = new AtomicInteger(0);
 
-            // Load cache untuk server ini
             CacheManager.onJoinServer(currentAddress);
 
-            // Cek apakah server support mod dengan cek channel
-            client.execute(() -> {
+            ClientTickEvents.START_CLIENT_TICK.register((c) -> {
+                if (joinTickCounter == null) return;
+                if (joinTickCounter.incrementAndGet() < 5) return;
                 try {
-                    // Kirim handshake, kalau server punya mod dia register channel ini
                     serverHasMod = ClientPlayNetworking.canSend(SearchPacket.TYPE);
                 } catch (Exception e) {
                     serverHasMod = false;
                 }
-                ItemFinderMod.LOGGER.info("[ItemFinder] Server has mod: " + serverHasMod);
+                ItemFinderMod.LOGGER.info("[ItemFinder] Server has mod: " + serverHasMod
+                    + " (checked after " + joinTickCounter + " ticks)");
+                joinTickCounter = null;
             });
 
-            // Detect dimensi
             if (client.level != null) {
                 CacheManager.onChangeDimension(
-                    client.level.dimension().location().toString()
+                    client.level.dimension().identifier().toString()
                 );
             }
         });
 
-        // Saat disconnect
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             serverHasMod = false;
+            joinTickCounter = null;
             CacheManager.onLeaveServer();
         });
     }

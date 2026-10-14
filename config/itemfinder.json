@@ -1,0 +1,15 @@
+{
+  "radius": 50,
+  "highlightDurationSeconds": 10,
+  "highlightPulse": true,
+  "highlightColorR": 1.0,
+  "highlightColorG": 1.0,
+  "highlightColorB": 0.0,
+  "sendToChat": true,
+  "sortMode": 0,
+  "particleTrail": true,
+  "searchByEnglish": false,
+  "searchMode": false,
+  "particleType": "END ROD",
+  "enterMode": 1
+}

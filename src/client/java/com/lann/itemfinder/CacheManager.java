@@ -1,15 +1,21 @@
 package com.lann.itemfinder;
 
-import com.google.gson.*;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.Reader;
+import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
-
-import java.io.*;
-import java.nio.file.*;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
 
 public class CacheManager {
 
@@ -42,7 +48,7 @@ public class CacheManager {
     public static class ServerCache {
         public String serverAddress;
         public Map<String, Map<String, CachedContainer>> dimensions = new HashMap<>();
-        // dimensions -> koordinat "x,y,z" -> container
+        // dimensions -> Coordinate "x,y,z" -> container
 
         public ServerCache(String serverAddress) {
             this.serverAddress = serverAddress;
@@ -107,10 +113,10 @@ public class CacheManager {
         CachedContainer cc = new CachedContainer(containerType);
         cc.items = new HashMap<>(items);
         currentCache.putContainer(currentDimension, pos, cc);
-        save(); // auto-save setiap update
+        save();
     }
 
-    // ── Remove container dari cache (kalau dihancurkan) ────────────────────
+    // ── Remove container from cache (when destroyed) ────────────────────
 
     public static void removeContainer(BlockPos pos) {
         if (currentCache == null) return;
@@ -121,7 +127,7 @@ public class CacheManager {
         }
     }
 
-    // ── Search dari cache ──────────────────────────────────────────────────
+    // ── Search from cache ──────────────────────────────────────────────────
 
     public static List<CacheSearchResult> searchExact(BlockPos playerPos, int radius, String targetItemId) {
         return search(playerPos, radius, (itemId, displayId) -> itemId.equals(targetItemId));
@@ -142,7 +148,6 @@ public class CacheManager {
             BlockPos pos = parsePos(entry.getKey());
             if (pos == null) continue;
 
-            // Cek dalam radius
             double dist = Math.sqrt(playerPos.distSqr(pos));
             if (dist > radius) continue;
 
@@ -180,8 +185,12 @@ public class CacheManager {
             return new StorageScanner.SearchResult(pos, containerType, count);
         }
 
+        /**
+         * Legacy string form, kept for logs only. Player-visible text must go
+         * through {@code ResultFormatter} (client side) so it is translated.
+         */
         public String format() {
-            return toSearchResult().format() + " §8(" + ageString + ")";
+            return toSearchResult().format() + " (" + ageString + ")";
         }
     }
 

@@ -5,15 +5,17 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SearchResultPacket implements CustomPacketPayload {
 
     public static final Type<SearchResultPacket> TYPE = new Type<>(
-        ResourceLocation.parse("itemfinder:search_result")
+        Identifier.parse("itemfinder:search_result")
     );
 
     public static final StreamCodec<FriendlyByteBuf, SearchResultPacket> CODEC =
@@ -24,6 +26,11 @@ public class SearchResultPacket implements CustomPacketPayload {
                     buf.writeBlockPos(r.pos);
                     buf.writeUtf(r.containerType);
                     buf.writeInt(r.count);
+                    buf.writeInt(r.items.size());
+                    for (Map.Entry<String, Integer> entry : r.items.entrySet()) {
+                        buf.writeUtf(entry.getKey());
+                        buf.writeInt(entry.getValue());
+                    }
                 }
             },
             buf -> {
@@ -33,7 +40,14 @@ public class SearchResultPacket implements CustomPacketPayload {
                     BlockPos pos = buf.readBlockPos();
                     String containerType = buf.readUtf();
                     int count = buf.readInt();
-                    results.add(new StorageScanner.SearchResult(pos, containerType, count));
+                    int itemCount = buf.readInt();
+                    Map<String, Integer> items = new HashMap<>();
+                    for (int j = 0; j < itemCount; j++) {
+                        String itemId = buf.readUtf();
+                        int itemCnt = buf.readInt();
+                        items.put(itemId, itemCnt);
+                    }
+                    results.add(new StorageScanner.SearchResult(pos, containerType, count, items));
                 }
                 return new SearchResultPacket(results);
             }
@@ -51,6 +65,6 @@ public class SearchResultPacket implements CustomPacketPayload {
     }
 
     public static void register() {
-        PayloadTypeRegistry.playS2C().register(TYPE, CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(TYPE, CODEC);
     }
 }
