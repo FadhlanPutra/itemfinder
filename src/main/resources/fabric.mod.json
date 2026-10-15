@@ -16,13 +16,6 @@
     "main": ["com.lann.itemfinder.ItemFinderMod"],
     "client": ["com.lann.itemfinder.ItemFinderClient"]
   },
-  "mixins": [
-    "itemfinder.mixins.json",
-    {
-      "config": "itemfinder.client.mixins.json",
-      "environment": "client"
-    }
-  ],
   "depends": {
     "fabricloader": ">=0.19.5",
     "fabric-api": "*",
