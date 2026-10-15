@@ -103,30 +103,61 @@ public class ModConfigScreen extends Screen {
         int panelBottom = rowY(ROW_COUNT) + HINT_PAD;
         g.fill(labelX - 6, panelTop, cx + 140, panelBottom, 0xEE000000);
 
-        TextDrawer.drawCenteredString(g, "§6§lItem Finder — Configuration", cx, panelTop + 6, 0xFFFFFF);
+        TextDrawer.drawCenteredString(g,
+            Component.translatable("gui.itemfinder.config_title").copy().withStyle(net.minecraft.ChatFormatting.GOLD),
+            cx, panelTop + 6, 0xFFFFFF);
 
-        int y0 = rowY(0) + off;
-        TextDrawer.drawString(g, "§fRadius: §e" + cfg.radius + " §7blocks", labelX, y0, 0xFFFFFF);
-        TextDrawer.drawString(g, "§fHighlight Duration: §e" + cfg.highlightDurationSeconds + "s", labelX, rowY(1) + off, 0xFFFFFF);
-        TextDrawer.drawString(g, "§fHighlight Pulse: §e" + (cfg.highlightPulse ? "ON" : "OFF"), labelX, rowY(2) + off, 0xFFFFFF);
+        TextDrawer.drawString(g,
+            Component.translatable("gui.itemfinder.config_radius").copy().withStyle(net.minecraft.ChatFormatting.WHITE)
+                .append(Component.literal(" " + cfg.radius + " ").withStyle(net.minecraft.ChatFormatting.YELLOW))
+                .append(Component.translatable("gui.itemfinder.config.blocks").copy().withStyle(net.minecraft.ChatFormatting.GRAY)),
+            labelX, rowY(0) + off, 0xFFFFFF);
+        TextDrawer.drawString(g,
+            Component.translatable("gui.itemfinder.config_highlight_duration").copy().withStyle(net.minecraft.ChatFormatting.WHITE)
+                .append(Component.literal(" " + cfg.highlightDurationSeconds + "s").withStyle(net.minecraft.ChatFormatting.YELLOW)),
+            labelX, rowY(1) + off, 0xFFFFFF);
+        TextDrawer.drawString(g,
+            Component.translatable("gui.itemfinder.config_highlight_pulse").copy().withStyle(net.minecraft.ChatFormatting.WHITE)
+                .append(Component.literal(" " + (cfg.highlightPulse ? "ON" : "OFF")).withStyle(net.minecraft.ChatFormatting.YELLOW)),
+            labelX, rowY(2) + off, 0xFFFFFF);
 
-        String sortLabel = cfg.sortMode == 0 ? "Nearest first" : "Most items first";
-        TextDrawer.drawString(g, "§fSort By: §e" + sortLabel, labelX, rowY(3) + off, 0xFFFFFF);
-        TextDrawer.drawString(g, "§fSend to Chat: §e" + (cfg.sendToChat ? "ON" : "OFF"), labelX, rowY(4) + off, 0xFFFFFF);
-        TextDrawer.drawString(g, "§fParticle Trail: §e" + (cfg.particleTrail ? "ON" : "OFF"), labelX, rowY(5) + off, 0xFFFFFF);
-        TextDrawer.drawString(g, "§fParticle Type: §e" + cfg.particleType, labelX, rowY(6) + off, 0xFFFFFF);
-        TextDrawer.drawString(g, "§fSearch Language: §e" + (cfg.searchByEnglish ? "English (ID)" : "Game language"), labelX, rowY(7) + off, 0xFFFFFF);
+        String sortLabel = Component.translatable(
+            cfg.sortMode == 0 ? "gui.itemfinder.sort_distance" : "gui.itemfinder.sort_count"
+        ).getString();
+        TextDrawer.drawString(g,
+            Component.translatable("gui.itemfinder.config_sort").copy().withStyle(net.minecraft.ChatFormatting.WHITE)
+                .append(Component.literal(" " + sortLabel).withStyle(net.minecraft.ChatFormatting.YELLOW)),
+            labelX, rowY(3) + off, 0xFFFFFF);
+        TextDrawer.drawString(g,
+            Component.translatable("gui.itemfinder.config_chat").copy().withStyle(net.minecraft.ChatFormatting.WHITE)
+                .append(Component.literal(" " + (cfg.sendToChat ? "ON" : "OFF")).withStyle(net.minecraft.ChatFormatting.YELLOW)),
+            labelX, rowY(4) + off, 0xFFFFFF);
+        TextDrawer.drawString(g,
+            Component.translatable("gui.itemfinder.config_particle").copy().withStyle(net.minecraft.ChatFormatting.WHITE)
+                .append(Component.literal(" " + (cfg.particleTrail ? "ON" : "OFF")).withStyle(net.minecraft.ChatFormatting.YELLOW)),
+            labelX, rowY(5) + off, 0xFFFFFF);
+        TextDrawer.drawString(g,
+            Component.translatable("gui.itemfinder.config_particle_type").copy().withStyle(net.minecraft.ChatFormatting.WHITE)
+                .append(Component.literal(" " + cfg.particleType).withStyle(net.minecraft.ChatFormatting.YELLOW)),
+            labelX, rowY(6) + off, 0xFFFFFF);
+        TextDrawer.drawString(g,
+            Component.translatable("gui.itemfinder.config_search_lang").copy().withStyle(net.minecraft.ChatFormatting.WHITE)
+                .append(Component.literal(" " + (cfg.searchByEnglish ? "English (ID)" : "Game language")).withStyle(net.minecraft.ChatFormatting.YELLOW)),
+            labelX, rowY(7) + off, 0xFFFFFF);
 
         String enterLabel;
         switch (cfg.enterMode) {
-            case 1: enterLabel = "Pick first result"; break;
-            case 2: enterLabel = "Scan all matches"; break;
-            default: enterLabel = "Off";
+            case 1: enterLabel = Component.translatable("gui.itemfinder.enter_top").getString(); break;
+            case 2: enterLabel = Component.translatable("gui.itemfinder.enter_all").getString(); break;
+            default: enterLabel = Component.translatable("gui.itemfinder.enter_off").getString();
         }
-        TextDrawer.drawString(g, "§fEnter Key: §e" + enterLabel, labelX, rowY(8) + off, 0xFFFFFF);
+        TextDrawer.drawString(g,
+            Component.translatable("gui.itemfinder.config_enter_mode").copy().withStyle(net.minecraft.ChatFormatting.WHITE)
+                .append(Component.literal(" " + enterLabel).withStyle(net.minecraft.ChatFormatting.YELLOW)),
+            labelX, rowY(8) + off, 0xFFFFFF);
 
         TextDrawer.drawCenteredString(g,
-            "§7Changes save automatically • Press ESC to close",
+            Component.translatable("gui.itemfinder.config_save_hint").copy().withStyle(net.minecraft.ChatFormatting.GRAY),
             cx, panelBottom + 4, 0xAAAAAA);
 
         super.extractRenderState(g, mx, my, delta);

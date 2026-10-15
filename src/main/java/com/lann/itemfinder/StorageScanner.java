@@ -22,6 +22,14 @@ import java.util.Map;
 
 public class StorageScanner {
 
+    /**
+     * Full entity type id (e.g. {@code minecraft:oak_chest_boat}), so the client
+     * can resolve the translated name via {@code EntityType.getDescription()}.
+     */
+    static String entityId(Entity entity) {
+        return BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString();
+    }
+
     public static class SearchResult {
         public final BlockPos pos;
         public final String containerType;
@@ -42,38 +50,14 @@ public class StorageScanner {
             this.items = items;
         }
 
+        /**
+         * Legacy string form, kept for logs only. Player-visible text must go
+         * through {@link ResultFormatter} (client side) so it is translated.
+         */
         public String format() {
-            return "§e" + friendlyName(containerType) +
-                   " §fdi §b" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() +
-                   " §f→ §a" + count + " item";
-        }
-
-        public static String friendlyName(String type) {
-            if (type.equals("EnderChestBlockEntity")) return "Ender Chest";
-            if (type.equals("MinecartChest")) return "Minecart Chest";
-            if (type.contains("ChestBoat")) return "Chest Boat";
-            if (type.contains("ShulkerBox")) return "Shulker Box";
-            if (type.contains("TrappedChest")) return "Trapped Chest";
-            if (type.contains("Chest")) return "Chest";
-            if (type.contains("Barrel")) return "Barrel";
-            if (type.contains("BlastFurnace")) return "Blast Furnace";
-            if (type.contains("Smoker")) return "Smoker";
-            if (type.contains("Furnace")) return "Furnace";
-            if (type.contains("Hopper")) return "Hopper";
-            if (type.contains("Dispenser")) return "Dispenser";
-            if (type.contains("Dropper")) return "Dropper";
-            return type.replace("BlockEntity", "");
-        }
-
-        private static String capitalizeWords(String s) {
-            String[] parts = s.split(" ");
-            StringBuilder sb = new StringBuilder();
-            for (String part : parts) {
-                if (part.isEmpty()) continue;
-                if (sb.length() > 0) sb.append(' ');
-                sb.append(Character.toUpperCase(part.charAt(0))).append(part.substring(1));
-            }
-            return sb.toString();
+            return ContainerDisplayNames.displayNameForId(containerType) +
+                   " at " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() +
+                   " → " + count + " item";
         }
     }
 
@@ -99,7 +83,7 @@ public class StorageScanner {
                             Map<String, Integer> items = new HashMap<>();
                             int found = countMatchingExact(serverPlayer.getEnderChestInventory(), targetItemId, items);
                             if (found > 0) {
-                                results.add(new SearchResult(pos, "EnderChestBlockEntity", found, items));
+                                results.add(new SearchResult(pos, "minecraft:ender_chest", found, items));
                             }
                         }
                         continue;
@@ -109,7 +93,7 @@ public class StorageScanner {
                         Map<String, Integer> items = new HashMap<>();
                         int found = countMatchingExact((Container) blockEntity, targetItemId, items);
                         if (found > 0) {
-                            results.add(new SearchResult(pos, "decorated_pot", found, items));
+                            results.add(new SearchResult(pos, "minecraft:decorated_pot", found, items));
                         }
                         continue;
                     }
@@ -118,7 +102,7 @@ public class StorageScanner {
                         Map<String, Integer> items = new HashMap<>();
                         int found = countMatchingExact(container, targetItemId, items);
                         if (found > 0) {
-                            String blockId = BuiltInRegistries.BLOCK.getKey(blockState.getBlock()).getPath();
+                            String blockId = ContainerDisplayNames.blockIdFull(blockEntity);
                             results.add(new SearchResult(pos, blockId, found, items));
                         }
                     }
@@ -138,13 +122,13 @@ public class StorageScanner {
 
             if (entity instanceof MinecartChest minecart) {
                 container = minecart;
-                typeName = "MinecartChest";
+                typeName = "minecraft:chest_minecart";
             } else if (entity instanceof AbstractChestBoat chestBoat) {
                 container = chestBoat;
-                typeName = "ChestBoat";
+                typeName = entityId(chestBoat);
             } else if (entity instanceof MinecartHopper hopper) {
                 container = hopper;
-                typeName = "MinecartHopper";
+                typeName = "minecraft:hopper_minecart";
             }
 
             if (container != null && typeName != null) {
@@ -180,7 +164,7 @@ public class StorageScanner {
                         if (serverPlayer != null) {
                             Map<String, Integer> items = new HashMap<>();
                             int found = countMatchingContains(serverPlayer.getEnderChestInventory(), lowerQuery, items);
-                            if (found > 0) results.add(new SearchResult(pos, "EnderChestBlockEntity", found, items));
+                            if (found > 0) results.add(new SearchResult(pos, "minecraft:ender_chest", found, items));
                         }
                         continue;
                     }
@@ -188,7 +172,7 @@ public class StorageScanner {
                     if (blockEntity instanceof DecoratedPotBlockEntity) {
                         Map<String, Integer> items = new HashMap<>();
                         int found = countMatchingContains((Container) blockEntity, lowerQuery, items);
-                        if (found > 0) results.add(new SearchResult(pos, "decorated_pot", found, items));
+                        if (found > 0) results.add(new SearchResult(pos, "minecraft:decorated_pot", found, items));
                         continue;
                     }
 
@@ -196,7 +180,7 @@ public class StorageScanner {
                         Map<String, Integer> items = new HashMap<>();
                         int found = countMatchingContains(container, lowerQuery, items);
                         if (found > 0) {
-                            String blockId = BuiltInRegistries.BLOCK.getKey(blockState.getBlock()).getPath();
+                            String blockId = ContainerDisplayNames.blockIdFull(blockEntity);
                             results.add(new SearchResult(pos, blockId, found, items));
                         }
                     }
@@ -211,9 +195,9 @@ public class StorageScanner {
         for (Entity entity : serverLevel.getEntities(null, searchBox)) {
             Container container = null;
             String typeName = null;
-            if (entity instanceof MinecartChest m) { container = m; typeName = "MinecartChest"; }
-            else if (entity instanceof AbstractChestBoat b) { container = b; typeName = "ChestBoat"; }
-            else if (entity instanceof MinecartHopper h) { container = h; typeName = "MinecartHopper"; }
+            if (entity instanceof MinecartChest m) { container = m; typeName = "minecraft:chest_minecart"; }
+            else if (entity instanceof AbstractChestBoat b) { container = b; typeName = entityId(b); }
+            else if (entity instanceof MinecartHopper h) { container = h; typeName = "minecraft:hopper_minecart"; }
             if (container != null) {
                 Map<String, Integer> items = new HashMap<>();
                 int found = countMatchingContains(container, lowerQuery, items);

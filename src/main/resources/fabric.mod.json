@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "itemfinder",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "name": "Item Finder",
   "description": "Search for items in nearby containers",
   "authors": ["lann"],
